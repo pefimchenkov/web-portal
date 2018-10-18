@@ -1,0 +1,30 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "consign": "^0.1.6",
+    "cors": "^2.8.4",
+    "express": "^4.16.4",
+    "morgan": "^1.9.1",
+    "mysql2": "^1.6.1",
+    "promise-mysql2": "^1.0.0",
+    "sequelize": "^4.0.0",
+    "sqlite": "^3.0.0",
+    "util.promisify": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/sequelize": "^4.27.28",
+    "eslint": "^5.7.0",
+    "nodemon": "^1.18.4"
+  },
+  "scripts": {
+    "start": "nodemon src/app.js --exec  \"npm run lint && node\"",
+    "lint": "eslint src/**/*.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
