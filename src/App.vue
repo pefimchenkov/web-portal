@@ -132,7 +132,9 @@ export default {
         return [
           { title: 'Orders', icon: 'bookmark_border', url: '/orders' },
           { title: 'New Ad', icon: 'note_add', url: '/new' },
-          { title: 'My Ads', icon: 'list', url: '/list' }
+          { title: 'My Ads', icon: 'list', url: '/list' },
+          { title: 'Клиенты', icon: 'people', url: '/clients' },
+          { title: 'ЗИП', icon: 'memory', url: '/zip' }
         ]
       }
       return [

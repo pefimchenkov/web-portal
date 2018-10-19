@@ -9,6 +9,8 @@ import Login from '@/components/auth/Login'
 // import Registration from '@/components/auth/Registration'
 import Orders from '@/components/user/Orders'
 import Register from '@/components/auth/Register'
+import ClientsList from '@/components/ads/ClientsList'
+import ZipList from '@/components/ads/ZipList'
 
 Vue.use(Router)
 
@@ -18,6 +20,16 @@ export default new Router({
       path: '/',
       name: 'home',
       component: Home
+    },
+    {
+      path: '/clients',
+      name: 'clients',
+      component: ClientsList
+    },
+    {
+      path: '/zip',
+      name: 'zip',
+      component: ZipList
     },
     {
       path: '/ad/:id',
