@@ -4,36 +4,68 @@ import router from './router'
 import Vuetify from 'vuetify'
 import 'vuetify/dist/vuetify.min.css'
 import store from './store'
-import * as fb from 'firebase'
 import ByModalComponent from './components/shared/BayModal.vue'
+import '@mdi/font/css/materialdesignicons.css'
+import JsonExcel from 'vue-json-excel'
+import MultiFiltersPlugin from './plugins/MultiFilters'
+import './icons' // icon
+
+// IMPORTANT just import firebase
+import fb from 'firebase/app'
+import config from './config/fb'
+
+// import package
+import 'firebase/auth'
+import 'firebase/firestore'
+import 'firebase/database'
+import 'firebase/storage'
+
+import VueTinyLazyloadImg from 'vue-tiny-lazyload-img'
+
+import acl from './acl'
 
 Vue.use(Vuetify)
+Vue.use(MultiFiltersPlugin)
+Vue.use(VueTinyLazyloadImg)
 Vue.component('app-buy-modal', ByModalComponent)
+Vue.component('downloadExcel', JsonExcel)
+
 Vue.config.productionTip = false
 
-/* eslint-disable no-new */
-new Vue({
-  el: '#app',
-  router,
-  components: { App },
-  template: '<App/>',
-  store,
-  created () {
-    let config = {
-      apiKey: 'AIzaSyDl2M-tIePSginA3hzMVChNZWadj0V6FEk',
-      authDomain: 'web-portal-75244.firebaseapp.com',
-      databaseURL: 'https://web-portal-75244.firebaseio.com',
-      projectId: 'web-portal-75244',
-      storageBucket: 'web-portal-75244.appspot.com',
-      messagingSenderId: '804378274290'
-    }
+export const eventBus = new Vue()
 
-    fb.initializeApp(config)
-    fb.auth().onAuthStateChanged(user => {
-      if (user) {
-        this.$store.dispatch('autoLoginUser', user)
-      }
-    })
-    this.$store.dispatch('fetchAds')
-  }
-})
+const opts = {
+	theme: {
+		dark: false
+	},
+	icons: {
+		iconfont: 'mdi'
+	}
+}
+
+new Vue({
+	el: '#app',
+	router,
+	acl,
+	store,
+	vuetify: new Vuetify(opts),
+	render: h => h(App),
+	created () {
+		if (!fb.apps.length) {
+			fb.initializeApp(config)
+		}
+		fb.auth().onAuthStateChanged(user => {
+			if (user) {
+				this.$store.dispatch('getCurrentUser')
+				this.$store.dispatch('autoLoginUser', user)
+					.then(() => {
+						this.$store.dispatch('getUserRole', user)
+					})
+			}
+		})
+		this.$store.dispatch('loadMarketImg')
+			.then(res => {
+				if (!res.success) this.$store.commit('setError', 'Отсутствует соединение с базой данных ТСД Групп')
+			})
+	}
+}).$mount('#app')

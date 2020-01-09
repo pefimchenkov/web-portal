@@ -2,9 +2,9 @@
 
 module.exports = {
   root: true,
-  parser: 'babel-eslint',
   parserOptions: {
-    sourceType: 'module'
+	  parser: 'babel-eslint',
+	sourceType: 'module'
   },
   env: {
     browser: true,
@@ -13,13 +13,16 @@ module.exports = {
   extends: 'standard',
   // required to lint *.vue files
   plugins: [
-    'html'
+	'html',
+	'vue'
   ],
   // add your custom rules here
   rules: {
     // allow async-await
     'generator-star-spacing': 'off',
     // allow debugger during development
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
+	'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+	'indent': [2, "tab"],
+	'no-tabs': 0
   }
 }
