@@ -22,7 +22,7 @@
     "promise-mysql2": "^1.0.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
-    "sequelize": "^4.0.0",
+    "sequelize": "^5.15.1",
     "sqlite": "^3.0.0",
     "util.promisify": "^1.0.0",
     "xlsx2json": "^1.0.0"
