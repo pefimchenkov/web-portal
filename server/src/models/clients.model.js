@@ -17,7 +17,7 @@ Clients.getEditableCRM = (id, result) => {
 		LEFT JOIN LegPers lp ON cli.ID=lp.client_id
 		LEFT JOIN 1C_Bills 1cb ON 1cb.client_1c=lp.1c_id
 		LEFT JOIN 1C_Journal 1cj ON 1cj.doc_base_num=1cb.bill_1c
-		WHERE cli.ID=${id} AND 1cj.doc_type='Реализация' AND 1cj.doc_date >= '2019-10-01'`,
+		WHERE cli.ID=${id} AND 1cj.doc_type='Реализация' AND 1cj.doc_date >= '2019-10-01' AND 1cb.project_1c IN ('Продажи','Продажи (ЗИП)','Продажи (Склад)','Ремонт','Сервисный контракт','Ремонт (ФИКС)','Аренда Оборудования','Сервисный контракт (ФИКС)','СКС','IT')`,
 	(err, res) => {
 		if (err) {
 			console.log('Error: ', err)

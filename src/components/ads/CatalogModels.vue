@@ -29,7 +29,7 @@
 	<v-flex xs6 class="text-left pl-4">
 		<v-dialog width="500px" v-model="dialog" persistent>
 			<template v-slot:activator="{on}">
-				<v-btn v-on="$acl.check('Edit') ? on : ''" color="primary" dark :disabled="$acl.not.check('Edit')">
+				<v-btn v-on="$acl.check('Edit') ? on : ''" @click="addItem" color="primary" dark :disabled="$acl.not.check('Edit')">
 				<v-icon dark left>add</v-icon>
 				Добавить
 			</v-btn>
@@ -263,9 +263,13 @@ export default {
 		goBack () {
 			this.$router.go(-1)
 		},
+		addItem () {
+			if (this.active === 'tab-type') this.infoText = 'Добавление нового типа'
+			if (this.active === 'tab-vendor') this.infoText = 'Добавление нового вендора'
+		},
 		editItem (item) {
 			if (this.active === 'tab-type') {
-				this.infoText = 'Редактирование типа оборудования с id ' + item.id
+				this.infoText = 'Редактирование типа с id ' + item.id
 				this.editedIndex = this.ModelsType.indexOf(item)
 			}
 			if (this.active === 'tab-vendor') {

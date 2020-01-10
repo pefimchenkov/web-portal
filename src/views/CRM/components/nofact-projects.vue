@@ -1,6 +1,6 @@
 <template>
 	<v-container fluid>
-		<div v-if="!loading && Legpers.length === 0">
+		<div v-if="!loading && Projects.length === 0">
 			<v-layout row wrap>
 				<v-flex xs12 class="text-center pt-5">
 					<v-progress-circular color="primary" indeterminate :size="100"></v-progress-circular>
@@ -15,7 +15,7 @@
 			</v-toolbar>
 			<v-data-table
 				:headers="headers"
-				:items="Legpers"
+				:items="Projects"
 				:search="search"
 				:items-per-page=50
 				item-key="1c"
@@ -43,7 +43,7 @@ import { AclRule } from 'vue-acl'
 export default {
 	data () {
 		return {
-			Legpers: [],
+			Projects: [],
 			search: '',
 			dialog: false,
 			headers: [
