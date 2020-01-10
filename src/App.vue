@@ -358,14 +358,14 @@ export default {
 			return this.$store.getters.info
 		},
 		userEmail () {
-			if (this.$store.getters.isUserLoggedIn) {
+			if (this.$store.getters.currentUser) {
 				return this.$store.getters.currentUser.email
 			} else {
 				return 'Вход не выполнен'
 			}
 		},
 		userAvatar () {
-			if (this.$store.getters.isUserLoggedIn) {
+			if (this.$store.getters.currentUser) {
 				if (!this.$store.getters.currentUser.photoURL) return 'account_circle'
 				return this.$store.getters.currentUser.photoURL
 			} else {

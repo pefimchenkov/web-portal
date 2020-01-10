@@ -3,17 +3,17 @@ module.exports = {
 	host: process.env.HOST || 'dev.tsd-group.ru',
 	db: {
 		connectionLimit: 15,
-		host: 'xxxxxxxxx',
+		host: 'support.tsd-group.ru',
 		user: 'root',
-		password: 'xxxxxxxxx',
+		password: '000TSDservice',
 		database: 'tsddb',
 		multipleStatements: true,
 		charset: 'utf8_general_ci',
 		debug: false
 	},
 	email: {
-		user: 'xxx@xxx.com',
-		password: 'xxxxxxxxx',
+		user: 'epf@tsd-group.ru',
+		password: 'Bassman148846208',
 		host: 'mx1.tsd-group.ru',
 		ssl: false
 	}

@@ -65,7 +65,7 @@ new Vue({
 		})
 		this.$store.dispatch('loadMarketImg')
 			.then(res => {
-				if (!res.success) this.$store.commit('setError', 'Отсутствует соединение с базой данных ТСД Групп')
+				if (res.success === false) this.$store.commit('setError', 'Отсутствует соединение с базой данных ТСД Групп')
 			})
 	}
 }).$mount('#app')
