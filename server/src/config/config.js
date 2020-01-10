@@ -5,7 +5,7 @@ module.exports = {
 		connectionLimit: 15,
 		host: 'support.tsd-group.ru',
 		user: 'root',
-		password: 'xxxxxxxxx',
+		password: '000TSDservice',
 		database: 'tsddb',
 		multipleStatements: true,
 		charset: 'utf8_general_ci',
@@ -13,7 +13,7 @@ module.exports = {
 	},
 	email: {
 		user: 'epf@tsd-group.ru',
-		password: 'xxxxxxxxx',
+		password: 'Bassman148846208',
 		host: 'mx1.tsd-group.ru',
 		ssl: false
 	}
