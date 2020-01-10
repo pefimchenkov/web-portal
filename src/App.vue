@@ -361,7 +361,7 @@ export default {
 			if (this.$store.getters.currentUser) {
 				return this.$store.getters.currentUser.email
 			} else {
-				return 'Внимание, вход не выполнен'
+				return 'ВНИМАНИЕ, вход не выполнен'
 			}
 		},
 		userAvatar () {
