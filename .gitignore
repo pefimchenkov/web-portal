@@ -12,3 +12,5 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
+server/src/config/config.js
+src/config/fb.js
