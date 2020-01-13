@@ -127,14 +127,14 @@ exports.sendCheck = (req, res) => {
 	})
 }
 exports.sendRequestForZip = (req, res) => {
-	const { item, user } = req.body
+	const { item, user, email } = req.body
 	const { ZipName } = item
 	const date = moment(new Date()).format('DD.MM.YYYY HH:mm:ss')
 	server.send(
 		{
-			text: 'Пользователь ' + user + ' запросил [' + ZipName + '] с Вашего склада. \nДля перемещения ЗИПа перейдите по ссылке: http://webportal.tsd-group.ru/engineers_stock',
+			text: 'Пользователь ' + user + ' запросил [' + ZipName + '] со склада ' + item.Email + '.\nДля перемещения ЗИПа перейдите по ссылке: http://webportal.tsd-group.ru/engineers_stock',
 			from: user,
-			to: '<epf@tsd-group.ru, star@tsd-group.ru>',
+			to: `<${email}, ${item.Email}>`,
 			subject: date + ' - ' + 'Склад инженеров: запрос ЗИП (' + ZipName + ')'
 		},
 		function (err, message) {

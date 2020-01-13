@@ -9,7 +9,7 @@
 		</div>
 		<div v-else>
 			<v-toolbar text color="white" class="text-lg-right elevation-2 mb-1">
-				<v-toolbar-title></v-toolbar-title>
+				<v-toolbar-title>Непопавший факт: Юрлица</v-toolbar-title>
 				<v-divider class="mx-3" inset vertical></v-divider>
 				<v-spacer></v-spacer>
 			</v-toolbar>
@@ -32,6 +32,9 @@
 					nextIcon: 'mdi-plus'
 				}"
 			>
+			<template v-slot:item.Sum="{item}">
+				{{ item.Sum.toLocaleString('ru') + ' р.' }}
+			</template>
 			</v-data-table>
 		</div>
 	</v-container>
@@ -41,17 +44,18 @@
 import { AclRule } from 'vue-acl'
 
 export default {
+	props: ['Legpers'],
 	data () {
 		return {
-			Legpers: [],
 			search: '',
 			dialog: false,
 			headers: [
-				{ text: '1С', value: '1c', align: 'center', divider: true },
-				{ text: 'Основной', value: 'qty', align: 'center', divider: true },
-				{ text: 'Сервисный', value: 'qtyser', align: 'center', divider: true },
-				{ text: 'Готовой Прод.', value: 'qtygp', align: 'center', divider: true },
-				{ text: 'Дата', value: 'date', align: 'center', divider: true }
+				{ text: 'Артикул в документе', value: 'client_1c', align: 'left', divider: true },
+				{ text: 'Артикул в 1C', value: '1c_id', align: 'left', divider: true },
+				{ text: 'Клиент в 1С', value: 'name', align: 'left', divider: true },
+				{ text: 'Кол-во вхождений', value: 'qty', align: 'left', divider: true },
+				{ text: 'Сумма', value: 'Sum', align: 'left', divider: true },
+				{ text: 'Проекты 1С', value: 'Projects', align: 'left', divider: true }
 			]
 		}
 	},

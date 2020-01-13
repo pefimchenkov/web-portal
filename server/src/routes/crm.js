@@ -1,10 +1,13 @@
 const db = require('../db')
-
 module.exports = app => {
+	const CRM = require('../controllers/crm.controller.js')
+
+	app.get('/crm/dictionaries/nofact_legpers', CRM.fetchNoFactsLegpers)
+	app.get('/crm/dictionaries/nofact_projects', CRM.fetchNoFactsProjects)
+
 	app.get('/deals/list', async (req, res) => {
-		let data = []
 		try {
-			data = await db.query(`
+			const data = await db.query(`
 			SELECT CAST(IFNULL(CONCAT(1cb.id,jira.ID),1cb.id) AS DECIMAL(18,0)) UniqueId, 1cb.id id, client_1c, lp.name client_db, lpt.name client_1c_db, bill_1c, bill_date, bill_base, bill_base_date,
 				bill_parent, bill_parent_date, bill_reporter, firm, project_1c, rnh, ready, bill_sum, bill_pay, bill_ship,
 				jira.JiraKey jira_id, DATE(jira.CREATED) jira_date, jira.SUMMARY, jira.NAME jira_client, jira.pname STATUS, jira.STRINGVALUE jira_bill, jira.SM_SERV jira_sm,

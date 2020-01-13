@@ -80,12 +80,14 @@
 					</a>
 			</template>
 			<template v-slot:item.action="{ item }">
-				<v-btn :disabled="email !== user" small icon @click.prevent="open(item)">
-						<v-icon small color="grey">mdi-pencil</v-icon>
-				</v-btn>
-				<v-btn small icon @click.prevent="send(item)">
-						<v-icon small color="grey">mdi-send</v-icon>
-				</v-btn>
+				<template v-if="item.Email">
+					<v-btn :disabled="email !== user" small icon @click.prevent="open(item)">
+							<v-icon small color="grey">mdi-pencil</v-icon>
+					</v-btn>
+					<v-btn small icon @click.prevent="send(item)">
+							<v-icon small color="grey">mdi-send</v-icon>
+					</v-btn>
+				</template>
     		</template>
 			<template v-if="PersonalItems" v-slot:no-data>
 				<v-row justify="center" align="center">
@@ -177,7 +179,7 @@
 				if (this.activeTab && this.activeTab === 'tab-archive') {
 					return this.EngineersStockArchive.find(item => (item.JIRA_ID === parseInt(this.zipID)) && (item.Eng === this.Eng))
 				} else {
-					return this.EngineersStock.find(item => (item.JIRA_ID === parseInt(this.zipID)) && (item.Eng === this.Eng))
+					return this.EngineersStock.find(item => (item.JIRA_ID === parseInt(this.zipID)))
 				}
 			},
 			user () {
@@ -216,7 +218,7 @@
 			},
 			async send (item) {
 				if (await this.$refs.confirm.open('Сделать запрос', 'Вы уверены?', { color: 'green' })) {
-					await this.$store.dispatch('sendRequestForZip', { item: item, user: this.displayName ? this.displayName + ' (' + this.user + ')' : this.user })
+					await this.$store.dispatch('sendRequestForZip', { item: item, user: this.displayName ? this.displayName + ' (' + this.user + ')' : this.user, email: this.user })
 						.then(() => {
 							this.$store.commit('setData', 'Запрос успешно отправлен.')
 						})
@@ -233,6 +235,7 @@
 			await window.scrollTo(0, 0)
 			await this.$store.dispatch('fetchEngineersStock')
 			if (this.PersonalItems) this.$store.dispatch('fetchEngineersStockDetails', { ids: await this.PersonalItems.IDs, zipID: this.zipID, userName: this.Eng })
+			console.log(await this.PersonalItems)
 		}
 	}
 </script>

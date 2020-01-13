@@ -24,6 +24,7 @@ import stock_1c from './stock_1c'
 import engineers_stock from './engineers-stock'
 import deals from './CRM/deals'
 import jira_users from './CRM/jira-users'
+import nofact from './CRM/nofact'
 import editprices from './editprices'
 import marketImg from './marketImg'
 import zipImg from './zipImg'
@@ -60,6 +61,7 @@ export default new Vuex.Store({
 		marketImg,
 		zipImg,
 		jira_users,
+		nofact,
 		config
 	}
 });
