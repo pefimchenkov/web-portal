@@ -16,7 +16,7 @@
 				<v-autocomplete
 					:items="jirausers"
 					v-model="manager"
-					label="* Ответственный менеджер"
+					label="Ответственный менеджер"
 					item-text="display_name"
 					return-object
 				>
@@ -276,8 +276,8 @@ export default {
 			this.plan = null
 		},
 		save () {
-			if (Object.keys(this.manager).length !== 0 && this.$refs.plan.validate()) {
-				this.$store.dispatch(this.url, { id: this.id, manager: this.manager.user_name, plan: this.plan })
+			if (this.$refs.plan.validate()) {
+				this.$store.dispatch(this.url, { id: this.id, manager: this.manager.user_name ? this.manager.user_name : this.editable.MANAGER, plan: this.plan })
 					.then(() => {
 						this.$store.commit('setData', 'Данные успешно обновлены.')
 						this.close()

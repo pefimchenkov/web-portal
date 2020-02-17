@@ -21,7 +21,19 @@ export default {
 		user: null,
 		currentUser: null,
 		id: null,
-		userRole: ''
+		userRole: '',
+		info: {
+			firstname: '',
+			lastname: '',
+			company: '',
+			position: '',
+			country: '',
+			city: '',
+			address: '',
+			email: '',
+			phone: '',
+			aboutme: ''
+		}
 	},
 	mutations: {
 		setUser(state, payload) {
@@ -32,6 +44,14 @@ export default {
 		},
 		getUserRole(state, payload) {
 			state.userRole = payload
+		},
+		setUserInfo(state, payload) {
+			state.info = payload
+		},
+		CHANGE_INFO: (state, { key, value }) => {
+			if (state.info.hasOwnProperty(key)) {
+				state.info[key] = value
+			}
 		}
 	},
 	actions: {
@@ -69,6 +89,21 @@ export default {
 				throw error
 			}
 		},
+		async getUserInfo({ commit, state }) {
+			try {
+				const info = await fb
+					.database()
+					.ref(`users`)
+					.child(state.user.id)
+					.child(`info`)
+					.once('value')
+				commit('setUserInfo', info.val())
+				return info.val()
+			} catch (error) {
+				commit('setError', error.messsage)
+				throw error
+			}
+		},
 		async getCurrentUser ({ commit }) {
 			commit('clearError')
 			try {
@@ -95,6 +130,21 @@ export default {
 				commit('setError', error.messsage)
 				throw error
 			}
+		},
+		changeInfo({ commit }, data) {
+			commit('CHANGE_INFO', data)
+		},
+		async updateInfo({ commit, state }) {
+			const user = fb.auth().currentUser
+			await fb
+				.database()
+				.ref(`users`)
+				.child(user.uid)
+				.child(`info`)
+				.update(state.info)
+			await user.updateProfile({
+				displayName: state.info.lastname + ' ' + state.info.firstname
+			})
 		},
 		setUserEmail({ commit, getters }, email) {
 			commit('clearError')

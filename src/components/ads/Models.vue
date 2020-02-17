@@ -19,7 +19,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <div v-if="!loadings && Models.length !== 0">
+    <div>
       	<v-app-bar :fixed="toggle" color="white" class="text-lg-right elevation-2 mb-1">
         	<v-toolbar-title>
 				Модели
@@ -32,7 +32,7 @@
 			></v-checkbox>
         <v-divider class="mx-3" inset vertical></v-divider>
         <v-spacer></v-spacer>
-		<v-flex xs3 sm3 md3 lg2 xl1>
+		<v-flex v-if="Models.length > 0" xs3 sm3 md3 lg2 xl1>
 				<v-menu
 					bottom
 					transition="scale-transition"
@@ -75,7 +75,7 @@
 				</v-menu>
 			</v-flex>
 			<v-spacer></v-spacer>
-		<v-dialog v-model="dialog" max-width="650px" persistent scrollable :disabled="$acl.not.check('Edit')">
+		<v-dialog v-if="Models.length > 0" v-model="dialog" max-width="650px" persistent scrollable :disabled="$acl.not.check('Edit')">
 			<template v-slot:activator="{ on }">
 				<v-btn v-on="$acl.not.check('Edit') ? '' : on" color="primary" dark class="mb-1" :disabled="$acl.not.check('Edit')">
 				<v-icon class="mr-2">add</v-icon>Добавить
@@ -208,7 +208,7 @@
 				nextIcon: 'mdi-plus'
 			}"
           >
-		  <template v-slot:body.prepend>
+		  <template v-if="Models.length > 0" v-slot:body.prepend>
 			  <tr>
 				<td v-if="computedHeaders.find(header => header.value === 'ID')">
 					<v-text-field clearable v-model="filters.ID" type="number"></v-text-field>
@@ -274,14 +274,12 @@
             	</v-btn>
               </td>
 			</template>
+			<template v-slot:no-data>
+				<div class="ma-5">
+        			<v-progress-circular :size="80" :width="1" color="primary" indeterminate />
+				</div>
+      		</template>
       </v-data-table>
-    </div>
-    <div v-else-if="!loadings && Models.length === 0">
-      <v-layout row>
-        <v-flex xs12 class="text-center pt-5">
-          <v-progress-circular color="primary" indeterminate :size="80"></v-progress-circular>
-        </v-flex>
-      </v-layout>
     </div>
   </v-container>
 </template>
@@ -292,6 +290,7 @@ import moment from 'moment'
 import { AclRule } from 'vue-acl'
 // import { eventBus } from '../../main.js'
 import GetConfig from '@/services/GetConfig'
+import { mapGetters } from 'vuex'
 import _ from 'lodash'
 
 export default {
@@ -309,12 +308,6 @@ export default {
 				TYPE: [],
 				VENDOR: []
 			},
-			Models: [],
-			Brands: [],
-			ModelsCategory: [],
-			ModelsProfile: [],
-			ModelsEngineers: [],
-			ModelsType: [],
 			search: '',
 			menu: false,
 			show: false,
@@ -416,6 +409,14 @@ export default {
 	},
 
 	computed: {
+		...mapGetters({
+			Models: 'models',
+			Brands: 'brands',
+			ModelsCategory: 'models_category',
+			ModelsProfile: 'models_profile',
+			ModelsEngineers: 'models_engineers',
+			ModelsType: 'models_type'
+		}),
 		computedHeaders () {
 			return this.headers.filter(header => header.selected)
 		},
@@ -429,24 +430,6 @@ export default {
 		VENDOR () { return _.uniq(this.Brands) }
 	},
 	methods: {
-		getModels () {
-			this.Models = this.$store.getters.models
-		},
-		getBrands () {
-			this.Brands = this.$store.getters.brands
-		},
-		getModelsCategory () {
-			this.ModelsCategory = this.$store.getters.models_category
-		},
-		getModelsProfile () {
-			this.ModelsProfile = this.$store.getters.models_profile
-		},
-		getModelsEngineers () {
-			this.ModelsEngineers = this.$store.getters.models_engineers
-		},
-		getModelsType () {
-			this.ModelsType = this.$store.getters.models_type
-		},
 		getName (id) {
 			var obj = {}
 			obj = this.$store.getters.zip.find(x => x.ID === id)
@@ -603,14 +586,15 @@ export default {
 		}
 	},
 	async created () {
-		this.$store.dispatch('fetchBrands')
-		this.$store.dispatch('fetchModelsCategory')
-		this.$store.dispatch('fetchModelsProfile')
-		this.$store.dispatch('fetchModelsEngineers')
-		this.$store.dispatch('fetchModelsType')
-		this.$store.dispatch('fetchModels')
+		await this.$store.dispatch('fetchModels')
+		await this.$store.dispatch('fetchBrands')
+		await this.$store.dispatch('fetchModelsCategory')
+		await this.$store.dispatch('fetchModelsProfile')
+		await this.$store.dispatch('fetchModelsEngineers')
+		await this.$store.dispatch('fetchModelsType')
+		await this.init()
 		/* чтение конфига */
-		await GetConfig.getColumn('modelsColumn')
+		GetConfig.getColumn('modelsColumn')
 			.then((data) => {
 				if (data) {
 					this.headers.forEach(header => {
@@ -627,13 +611,6 @@ export default {
 				this.show = true
 				this.infoText = error.message
 			})
-		await this.getModels()
-		await this.getBrands()
-		await this.getModelsCategory()
-		await this.getModelsProfile()
-		await this.getModelsEngineers()
-		await this.getModelsType()
-		await this.init()
 	}
 }
 </script>

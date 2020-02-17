@@ -161,8 +161,7 @@
 		:items-per-page=50
 		item-key="ID"
 		:mobile-breakpoint="550"
-		sort-by='ID'
-		sort-desc
+		sort-by='NAME'
 		:footer-props="{
 			itemsPerPageAllText: 'Все',
 			itemsPerPageOptions: [50,250,500,-1],

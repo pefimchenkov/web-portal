@@ -39,7 +39,6 @@ export default {
 					commit('loadModels', resultModels)
 				})
 				.catch(err => {
-					commit('setLoading', false)
 					commit('setError', error.messsage)
 					throw err
 				})
@@ -54,7 +53,6 @@ export default {
 					commit('loadModelsCategory', resultModelsCategory)
 				})
 				.catch(err => {
-					commit('setLoading', false)
 					commit('setError', error.messsage)
 					throw err
 				})
@@ -69,7 +67,6 @@ export default {
 					commit('loadModelsProfile', resultModelsProfile)
 				})
 				.catch(err => {
-					commit('setLoading', false)
 					commit('setError', error.messsage)
 					throw err
 				})
@@ -84,7 +81,6 @@ export default {
 					commit('loadModelsEngineers', resultModelsEngineers)
 				})
 				.catch(err => {
-					commit('setLoading', false)
 					commit('setError', error.messsage)
 					throw err
 				})
@@ -100,7 +96,6 @@ export default {
 					commit('loadModelsType', resultModelsType)
 				})
 				.catch(err => {
-					commit('setLoading', false)
 					commit('setError', error.messsage)
 					throw err
 				})
@@ -116,7 +111,6 @@ export default {
 					commit('loadModelsVendor', resultModelsVendor)
 				})
 				.catch(err => {
-					commit('setLoading', false)
 					commit('setError', error.messsage)
 					throw err
 				})

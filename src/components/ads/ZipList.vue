@@ -173,7 +173,7 @@
 			<v-flex xs4 sm4 md4 lg2 xl1>
 				<v-dialog v-model="dialog" :fullscreen="editedIndex === -1" :persistent="editedIndex === -1" max-width="700px" scrollable>
 					<template v-slot:activator="{on}">
-						<v-btn  v-on="$acl.check('Edit') ? on : ''" color="primary" :disabled="$acl.not.not.check('Edit')" dark>
+						<v-btn  v-on="$acl.check('Edit') ? on : ''" color="primary" :disabled="$acl.not.check('Edit')" dark>
 							<v-icon dark left>add</v-icon>
 							Добавить
 						</v-btn>
@@ -240,7 +240,7 @@
 								:required="editedItem.zipCLASS && editedItem.zipCLASS.name === 'Услуга' ? true : false"
 								:validation="editedItem.zipCLASS && editedItem.zipCLASS.name === 'Услуга' ? true : false"
 								:rules="modelRules"
-								item-text = 'MODEL'
+								:item-text="modelPlusName"
 								ref="models"
 								return-object
 								multiple
@@ -823,6 +823,9 @@ export default {
 	},
 
 	methods: {
+		modelPlusName (item) {
+			return item.MODEL + ' (' + item.ID + ')'
+		},
 		async getExel () {
 			const filtered = await this.headers.filter(header => header.selected === true)
 			filtered.forEach(item => {

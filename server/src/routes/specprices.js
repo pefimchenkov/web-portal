@@ -25,8 +25,8 @@ module.exports = app => {
 		let data = []
 		try {
 			data = await db.query(
-				`SELECT ps.id AS ID, ps.product, CONCAT(pt.name,' ',pm.NAME) ZIPNAME, GROUP_CONCAT(ART_1C) ART, price, pricends, currency,
-				CONCAT('CONTRACT-',ji.issuenum) SPEC, ps.client AS client, ps.alias alias, ps.email EMAIL, ps.date DATE, ps.duplicate
+				`SELECT ps.id AS ID, ps.product, CONCAT(pt.name,' ',pm.NAME) ZIPNAME, GROUP_CONCAT(ART_1C) ART, price, pricends, currency, currency_agent,
+				CONCAT('CONTRACT-',ji.issuenum) SPEC, ps.client AS client, ps.alias alias, ps.email EMAIL, ps.date DATE, ps.duplicate, price_agent
         		FROM tsddb.Prices_Spec ps
         		LEFT JOIN tsddb.Products_Main pm ON pm.JIRA_ID=ps.product
         		LEFT JOIN tsddb.Products_Type pt ON pt.id=pm.Class_Type_ID
@@ -203,7 +203,9 @@ module.exports = app => {
 							spec: 'D',
 							price: 'E',
 							currency: 'F',
-							duplicate: 'G'
+							duplicate: 'G',
+							price_agent: 'H',
+							currency_agent: 'I'
 						}
 					}).then(data => {
 						let obj = {}
@@ -232,7 +234,7 @@ module.exports = app => {
 										pricends = parseFloat(el.price) * 1.2
 									}
 									await db.query(
-										'INSERT INTO `Prices_Spec` (product, alias, client, spec, price, pricends, currency, duplicate, email, date)  VALUES (?)',
+										'INSERT INTO `Prices_Spec` (product, alias, client, spec, price, pricends, currency, duplicate, price_agent, currency_agent, email, date)  VALUES (?)',
 										[
 											[
 												el.product,
@@ -243,6 +245,8 @@ module.exports = app => {
 												pricends,
 												el.currency,
 												el.duplicate,
+												el.price_agent,
+												el.currency_agent,
 												(el.email = email),
 												(el.date = date)
 											]

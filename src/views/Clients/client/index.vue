@@ -322,14 +322,14 @@
         <div v-if="loading">
           <v-layout row>
             <v-flex xs12 class="text-center pt-5">
-              <v-progress-circular color="primary" indeterminate :size="80"></v-progress-circular>
+              <v-progress-circular color="primary" indeterminate :size="100"></v-progress-circular>
             </v-flex>
           </v-layout>
         </div>
 
         <div v-else-if="Specprices.length > 0 && !loading">
-          <v-layout>
-            <v-flex xs4>
+          <v-row>
+            <v-col cols="5">
               <v-text-field
                 class="mb-2"
                 prepend-icon="search"
@@ -339,22 +339,20 @@
                 single-line
                 clearable
               ></v-text-field>
-            </v-flex>
+            </v-col>
 
             <v-spacer></v-spacer>
 
-            <v-flex xs4 sm2 md1>
+            <v-col xs='2' sm='3' md='3' lg='2' xl='1' class="mr-2">
               <v-dialog v-model="dialog" max-width="500px" persistent>
 				  <template v-slot:activator=" { on } ">
-					    <v-btn v-on="$acl.check('Edit') ? on : ''" color="primary" dark :disabled="$acl.check('Edit')">
+					    <v-btn v-on="$acl.check('Edit') ? on : ''" color="primary" dark :disabled="$acl.not.check('Edit')">
 							<v-icon class="mr-2">add</v-icon>Добавить
 						</v-btn>
 				  </template>
                 <v-card>
                   <v-card-title>
-                    <span
-                      class="headline info--text"
-                    >{{ formTitle }}: {{ editedItem.ZIPNAME }} {{ editedItem.ART }}</span>
+                    <span class="headline info--text">{{ formTitle }}: {{ editedItem.ZIPNAME }} {{ editedItem.ART }}</span>
                   </v-card-title>
                   <v-card-text>
                     <v-container grid-list-md text-center>
@@ -457,8 +455,8 @@
                   </v-card-actions>
                 </v-card>
               </v-dialog>
-            </v-flex>
-          </v-layout>
+            </v-col>
+          </v-row>
 
           <v-data-table
             :headers="headers_specprices"
@@ -494,6 +492,11 @@
               <td v-else>{{ item.product }}</td>
               <td>{{ item.alias }}</td>
               <td>{{ item.ART }}</td>
+			  <td>{{ item.price_agent }}
+                <v-icon v-if="item.currency_agent === 1 && item.price_agent" color="blue" small>mdi-currency-rub</v-icon>
+				<v-icon v-else-if="item.currency_agent === 2 && item.price_agent" color="yellow darken-2" small>mdi-currency-eur</v-icon>
+				<v-icon v-else-if="item.currency_agent === 3 && item.price_agent" color="green" small>mdi-currency-usd</v-icon>
+              </td>
               <td>{{ item.price }}
                 <v-icon v-if="item.currency === 1 && item.price" color="blue" small>mdi-currency-rub</v-icon>
 				<v-icon v-else-if="item.currency === 2 && item.price" color="yellow darken-2" small>mdi-currency-eur</v-icon>
@@ -549,9 +552,6 @@
 								clearable
 								return-object
 							>
-								<!-- <template slot="selection" slot-scope="data">
- 									 {{ data.item.NAME }} - {{ data.item.ART }}
-								</template> -->
 							</v-autocomplete>
                         </v-flex>
                         <v-flex xs12>
@@ -694,6 +694,7 @@ export default {
 				{ text: 'ЗИП', value: 'ZIPNAME' },
 				{ text: 'Псевдоним', value: 'alias' },
 				{ text: 'Артикул 1С', value: 'ART' },
+				{ text: 'Цена посредник', value: 'price_agent', align: 'rigth' },
 				{ text: 'Спеццена', value: 'price', align: 'rigth' },
 				{ text: 'Спеццена (с НДС)', value: 'pricends', align: 'rigth' },
 				{ text: 'Дубль', value: 'duplicate' },
@@ -1120,7 +1121,7 @@ export default {
 			return this.editedIndexSN === -1 ? 'Новая позиция' : 'Редактирование'
 		},
 		Edit () {
-			return new AclRule('user').and('engineer').or('admin').generate()
+			return new AclRule('engineer').or('admin').generate()
 		},
 		userRole () {
 			return this.$store.getters.userRole

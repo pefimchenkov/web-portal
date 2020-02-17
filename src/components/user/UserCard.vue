@@ -1,134 +1,165 @@
 <template>
-  <v-card v-if='data.length !== 0' class='elevation-3'>
-	  <v-card-title secondary-title class='blue lighten-2 white--text headline'>
-		  <h3 class='headline font-weight-regula text-sm-center align_center'>Карточка пользователя</h3>
-	  </v-card-title>
-	<v-layout row wrap>
-	<v-flex pa-3 xs12 sm12 md12 lg6 xl6>
-		<v-card flat>
-		<v-treeview
-			:items='items'
-         	:active.sync='active'
-			:open.sync="open"
-          	activatable
-			:load-children="getFiltersName"
-			hoverable
-          	active-class='success--text'
-          	class='pa-2'
-          	open-on-click
-        >
-		  <template slot="label" slot-scope="props">
-			<v-icon
-              	:color="active ? 'success' : ''"
-            	>
-				{{ props.item.icon }}
-            </v-icon>
-			<v-icon :color="props.item.share ? 'green' : 'grey'"
-					v-if="props.item.deletable"
-					@click="setFilterShare($event, props.item.name )"
-				>
-					mdi-share-variant
-			</v-icon>
-			<v-icon
-				v-if="props.item.deletable"
-				@click="delFilter( props.item.name )"
-				>
-				mdi-delete-forever
-			</v-icon>
-				<span v-if="props.item.deletable" @click="routeToMyFilter( props.item.name )">{{ props.item.name }}</span>
-				<span v-else>{{ props.item.name }}</span>
-           </template>
-		</v-treeview>
-		</v-card>
-		<v-card flat>
-			<v-treeview
-			:items='sharedItems'
-			:active.sync='activeShare'
-			:open.sync="openShare"
-			activatable
-			:load-children="getSharedFiltersName"
-			hoverable
-          	active-class='success--text'
-          	class='pa-2'
-          	open-on-click
-			>
-			<template slot="label" slot-scope="props">
-				<v-icon
-              	:color="activeShare ? 'success' : ''"
-            	>
-				{{ props.item.icon }}
-            </v-icon>
-			<span @click="routeToSharedFilter( props.item.name, props.item.user, props.item.key, props.item.payload )">{{ props.item.name }}</span>
-			</template>
-			</v-treeview>
-		</v-card>
-	</v-flex>
-	<v-flex pa-3 xs12 sm12 md12 lg6 xl6>
-	<v-card>
-	<v-layout row wrap>
-		<v-flex pr-4 pl-1 xs4 sm4 md4 lg5 xl5>
-			<v-avatar size='150px' tile>
-				<v-img v-if='imageSRC' class='img' :src='imageSRC' contain></v-img>
-    			<v-img v-else class='img' :src='cardUserImage' contain></v-img>
-    		</v-avatar>
-		</v-flex>
-		<v-flex xs8 sm8 md8 lg7 xl7>
-			<v-card-text>
-				<h5 class='ma-2'>Должность:  {{ Position || 'не заполнено'}}</h5>
-				<v-divider></v-divider>
-				<h4 class='ma-2'>Имя (Фамилия): {{ UserName }}</h4>
-				<v-divider></v-divider>
-				<h5 class='ma-2'>Компания: {{ Company }}</h5>
-				<v-divider></v-divider>
-				<p class='ma-2'>
-					{{ AboutMe }}
-				</p>
-				<v-divider></v-divider>
-			</v-card-text>
-		</v-flex>
-		<v-flex xs10 offset-xs1>
-				<v-list>
-					<v-list-item
-						v-for='(item, index) in data'
-						:key='index'
+	<v-container fluid v-if='currentUser' class='elevation-1 grey lighten-5 ma-auto'>
+	  	<v-toolbar flat color="primary lighten-2" class="mb-3" dark>
+      		<v-toolbar-title>Профиль пользователя</v-toolbar-title>
+    	</v-toolbar>
+			<v-tabs vertical v-model="activeTab" class="vertical-tabs">
+
+				<v-tab href="#tab-data">
+				<v-icon left>mdi-information-variant</v-icon>
+					Инфо
+				</v-tab>
+				<v-tab href="#tab-info">
+					<v-icon left>mdi-pencil</v-icon>
+					Ред. инфо
+				</v-tab>
+				<v-tab href="#tab-bonus">
+					<v-icon left>mdi-cash-multiple</v-icon>
+					Бонусы
+				</v-tab>
+				<v-tab href="#tab-filters">
+					<v-icon left>mdi-filter</v-icon>
+					Фильтры
+				</v-tab>
+
+				<v-tabs-slider></v-tabs-slider>
+
+				<v-tab-item :value="'tab-data'" class="ml-10">
+					<v-card class="mx-auto">
+						<v-row class="ma-auto">
+							<v-col class="text-center" xs="12" sm="12" md="4" lg="4" xl="4">
+								<v-avatar size='300' tile>
+									<v-img v-if='Photo' class='img' :src='Photo' contain></v-img>
+									<v-img v-else class='img' :src='cardUserImage' contain></v-img>
+								</v-avatar>
+							</v-col>
+							<v-col xs="12" sm="12" md="8" lg="8" xl="8">
+								<v-row>
+									<v-col>
+										<v-list>
+											<div class='ma-4'><b>ФИО: </b> {{ Name || 'не заполнено'}}</div>
+											<v-divider></v-divider>
+											<div class='ma-4'><b>Должность: </b>  {{ Position || 'не заполнено'}}</div>
+											<v-divider></v-divider>
+											<div class='ma-4'><b>Компания: </b>  {{ Company  || 'не заполнено' }}</div>
+											<v-divider></v-divider>
+										</v-list>
+									</v-col>
+									<v-col>
+										<v-list>
+											<div class='ma-4'><b>Email: </b>  {{ Email  || 'не заполнено' }}</div>
+											<v-divider></v-divider>
+											<div class='ma-4'><b>Телефон: </b>  {{ Phone  || 'не заполнено' }}</div>
+											<v-divider></v-divider>
+											<div class='ma-4'><b>Роль: </b>  {{ UserRole  || 'не известно' }}</div>
+											<v-divider></v-divider>
+										</v-list>
+									</v-col>
+								</v-row>
+								<v-row>
+									<v-col>
+										<div class='ma-4'><b>О себе: </b>  {{ AboutMe  || 'не заполнено' }}</div>
+											<v-divider></v-divider>
+									</v-col>
+								</v-row>
+							</v-col>
+						</v-row>
+						<v-row>
+							<input
+								ref='fileInput'
+								type='file'
+								style='display:none'
+								accept='image/*'
+								@change='onFileChange'
+							>
+							<v-col class='text-center ma-auto'>
+								<v-btn v-if='image === null' @click='triggerUpload' :loading='localloading' :disabled='localloading' class='success'>Загрузить фото</v-btn>
+								<v-btn v-else @click='uploadPhoto' :loading='localloading' :disabled='localloading' class='success'>Сохранить</v-btn>
+							</v-col>
+						</v-row>
+					</v-card>
+				</v-tab-item>
+
+				<v-tab-item :value="`tab-info`" class="ml-10">
+					<EditProfile />
+				</v-tab-item>
+
+				<v-tab-item :value="'tab-bonus'" class="ml-10">
+					<Bonus></Bonus>
+				</v-tab-item>
+
+				<v-tab-item :value="'tab-filters'" class="ml-10">
+					<v-card>
+					<v-treeview
+						:items='items'
+						:active.sync='active'
+						:open.sync="open"
+						activatable
+						:load-children="getFiltersName"
+						hoverable
+						active-class='success--text'
+						class='pa-2'
+						open-on-click
 					>
-					<b>{{ item.split(':')[0] }}</b>: {{ item.split(':')[0] === 'Телефон' ? Phone : item.split(':')[1] }}
-					</v-list-item>
-					<v-list-item>
-						<b>Роль:&nbsp;</b>{{UserRole }}
-					</v-list-item>
-				</v-list>
-		</v-flex>
-		<input
-		ref='fileInput'
-		type='file'
-		style='display:none'
-		accept='image/*'
-		@change='onFileChange'
-		>
-		<v-flex xs12 sm12 md12 lg12 class='text-center mb-2'>
-			<v-btn v-if='image === null' @click='triggerUpload' :loading='localloading' :disabled='localloading' class='success'>Загрузить фото</v-btn>
-			<v-btn v-else @click='uploadPhoto' :loading='localloading' :disabled='localloading' class='success'>Сохранить</v-btn>
-		</v-flex>
-		<v-flex>
-		<v-btn v-if="$acl.check('isAdmin')" @click="$acl.change('user')">
-  			я админ
-		</v-btn>
-		</v-flex>
-	</v-layout>
-	</v-card>
-	</v-flex>
-	</v-layout>
-	</v-card>
-  <div v-else>
+						<template slot="label" slot-scope="props">
+							<v-icon
+								:color="active ? 'success' : ''"
+								>
+								{{ props.item.icon }}
+							</v-icon>
+							<v-icon :color="props.item.share ? 'green' : 'grey'"
+									v-if="props.item.deletable"
+									@click="setFilterShare($event, props.item.name )"
+							>
+								mdi-share-variant
+							</v-icon>
+							<v-icon
+								v-if="props.item.deletable"
+								@click="delFilter( props.item.name )"
+							>
+								mdi-delete-forever
+							</v-icon>
+							<span v-if="props.item.deletable" @click="routeToMyFilter(props.item.name)">{{ props.item.name }}</span>
+							<span v-else>{{ props.item.name }}</span>
+						</template>
+					</v-treeview>
+					<v-treeview
+						:items='sharedItems'
+						:active.sync='activeShare'
+						:open.sync="openShare"
+						activatable
+						:load-children="getSharedFiltersName"
+						hoverable
+						active-class='success--text'
+						class='pa-2'
+						open-on-click
+					>
+						<template slot="label" slot-scope="props">
+							<v-icon
+								:color="activeShare ? 'success' : ''"
+							>
+								{{ props.item.icon }}
+							</v-icon>
+							<span @click="routeToSharedFilter( props.item.name, props.item.user, props.item.key, props.item.payload )">{{ props.item.name }}</span>
+						</template>
+					</v-treeview>
+					</v-card>
+				</v-tab-item>
+			</v-tabs>
+	</v-container>
+  	<v-container fluid v-else>
       <v-layout row>
         <v-flex xs12 class='text-center pt-5'>
-          <v-progress-circular :size='80' color='primary' indeterminate></v-progress-circular>
+          <v-progress-circular :size='100' color='primary' indeterminate></v-progress-circular>
         </v-flex>
       </v-layout>
-    </div>
+  	</v-container>
 </template>
 <script>
+
+import EditProfile from './EditProfileForm'
+import Bonus from './bonus/index.vue'
+
 import fb from 'firebase/app'
 
 import 'firebase/auth'
@@ -136,10 +167,11 @@ import 'firebase/firestore'
 import 'firebase/database'
 import 'firebase/storage'
 
-import { eventBus } from '../../main.js'
+// import { eventBus } from '../../main.js'
 import GetConfig from '@/services/GetConfig'
 import _ from 'lodash'
-// import store from '../store'
+
+import { mapState } from 'vuex'
 
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms))
 const Cryptr = require('cryptr')
@@ -147,6 +179,10 @@ const cryptr = new Cryptr('myTotalySecretKey')
 
 export default {
 	name: 'user-card',
+	components: {
+		EditProfile,
+		Bonus
+	},
 	props: {
 		cardUserImage: {
 			type: String,
@@ -156,6 +192,7 @@ export default {
 	data () {
 		return {
 			data: [],
+			activeTab: 'tab-data',
 			active: [1111],
 			activeShare: [],
 			filterNames: [],
@@ -168,10 +205,6 @@ export default {
 			SharedFilters: [],
 			item: null,
 			UserName: '',
-			AboutMe: '',
-			Position: '',
-			Phone: '',
-			Company: '',
 			UserRole: '',
 			formData: new FormData(),
 			image: null,
@@ -180,46 +213,46 @@ export default {
 			localloading: false
 		}
 	},
-	methods: {
-		async getData (user) {
-			if (user != null) {
-				this.data = []
-				const fbUserInfo = await fb
-					.database()
-					.ref(`users`)
-					.child(user.uid)
-					.child(`info`)
-					.once('value')
-				const info = fbUserInfo.val()
-				eventBus.$emit('setInfo', info)
-				await user.providerData.forEach(profile => {
-					this.imageSRC = profile.photoURL
-					for (var [key, value] of Object.entries(profile)) {
-						if (key === 'uid') key = 'ID'
-						if (key === 'displayName') {
-							key = 'Имя пользователя'
-							if (!value || value === null) {
-								value = 'не заполнено'
-							} else {
-								this.UserName = info.firstname + ' ' + info.lastname
-							}
-						}
-						if (key === 'phoneNumber') {
-							key = 'Телефон'
-							value = this.Phone
-						}
-						if (key === 'providerId') {
-							key = 'Способ входа'
-							value = 'email + password'
-						}
-						if (value === null && value === '') value = 'не заполнено'
-						if (key !== 'photoURL') this.data.push(key + ': ' + value)
-					}
-				})
-			} else {
-				this.data.push('ВНИМАНИЕ: Не удалось загрузить данные!')
-			}
+	computed: {
+		...mapState({
+			info: state => state.user.info
+		}),
+		currentUser () {
+			return this.$store.getters.currentUser
 		},
+		Name () {
+			return this.currentUser.providerData[0].displayName
+		},
+		Company () {
+			return this.info.company
+		},
+		Position () {
+			return this.info.position
+		},
+		Photo () {
+			return this.currentUser.providerData[0].photoURL
+		},
+		Email () {
+			return this.currentUser.providerData[0].email
+		},
+		Phone () {
+			return this.info.phone
+		},
+		AboutMe () {
+			return this.info.aboutme
+		},
+		items () {
+			return [
+				{ id: 1000, name: 'Фильтры', icon: 'info', linkLess: true },
+				{ id: 1001, name: 'Мои фильтры', children: this.filterNames, icon: 'filter_list', linkLess: true }
+			]
+		},
+		sharedItems () {
+			return [{ id: 2002, name: 'Общие фильтры', children: this.sharedFilterNames, icon: 'filter_list', linkLess: true }]
+		}
+	},
+	methods: {
+
 		triggerUpload () {
 			this.$refs.fileInput.click()
 		},
@@ -368,42 +401,8 @@ export default {
 			.catch(err => console.warn(err))
 		} */
 	},
-	computed: {
-		items () {
-			return [
-				{
-					id: 1000,
-					name: 'Данные',
-					icon: 'info',
-					linkLess: true
-				},
-				{
-					id: 1001,
-					name: 'Мои фильтры',
-					children: this.filterNames,
-					icon: 'filter_list',
-					linkLess: true
-				}
-			]
-		},
-		sharedItems () {
-			return [
-				{
-					id: 2002,
-					name: 'Общие фильтры',
-					children: this.sharedFilterNames,
-					icon: 'filter_list',
-					linkLess: true
-				}
-			]
-		}
-	},
-	watch: {
-		/* colorShare () {
-		} */
-	},
+
 	async created () {
-		// fb.auth().onAuthStateChanged(user => {
 		await GetConfig.getMyFilters()
 			.then((filters) => {
 				if (filters && filters !== null) {
@@ -454,70 +453,10 @@ export default {
 				})
 			})
 			.then(() => {
-				const user = this.$store.getters.currentUser
-				this.getData(user)
+				this.$store.dispatch('getUserInfo')
 			})
 	},
-	mounted () {
-		eventBus.$on('updateUserCard', async data => {
-			const user = await this.$store.getters.currentUser
-			let info = {}
-			await data.forEach(item => {
-				if (item.name === 'lastname') {
-					this.UserName = item.value
-				}
-				if (item.name === 'firstname') {
-					this.UserName = item.value + ' ' + this.UserName
-				}
-				if (item.name === 'position') {
-					this.Position = item.value
-				}
-				if (item.name === 'aboutme') {
-					this.AboutMe = item.value
-				}
-				if (item.name === 'phone') {
-					this.Phone = item.value
-				}
-				if (item.name === 'company') {
-					this.Company = item.value
-				}
-				info[item.name] = item.value
-			})
-			await fb
-				.database()
-				.ref(`users`)
-				.child(user.uid)
-				.child(`info`)
-				.update(info)
-			await user.updateProfile({
-				displayName: this.UserName || 'не заполнено'
-			})
-				.then(() => {
-					this.$store.dispatch('setData', 'Профиль успешно обновлён.')
-					this.getData(user)
-				})
-				.catch(function (error) {
-					if (error) {
-						this.$store.dispatch('setError', error.message)
-					}
-				})
-		})
-		eventBus.$on('setUserCard', data => {
-			data.forEach(item => {
-				if (item.phone) {
-					this.Phone = item.phone
-				}
-				if (item.company) {
-					this.Company = item.company
-				}
-				if (item.aboutme) {
-					this.AboutMe = item.aboutme
-				}
-				if (item.position) {
-					this.Position = item.position
-				}
-			})
-		})
+	async mounted () {
 		this.UserRole = cryptr.decrypt(sessionStorage.getItem('UserRole'))
 		switch (this.UserRole) {
 		case 'user': this.UserRole = 'Пользователь'; break
@@ -529,6 +468,12 @@ export default {
 }
 </script>
 <style scouped>
+.cursor {
+	cursor: pointer;
+}
+.cursor:hover {
+	background-color: #f5f5f5;
+}
 .align_center {
 	width: 100%;
 }
@@ -543,5 +488,8 @@ export default {
 }
 .greyClass {
 	color: grey !important;
+}
+.vertical-tabs [role="tab"] {
+	justify-content: flex-start;
 }
 </style>

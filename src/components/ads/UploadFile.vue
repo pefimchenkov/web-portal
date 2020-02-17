@@ -54,16 +54,16 @@ export default {
 		triggerUpload () {
 			let urlUpload = ''
 			let urlXls2json = ''
-			let location = ''
+			// let location = ''
 			if (this.ID === 'ALIASES') {
 				urlUpload = '/specprices/upload_file'
 				urlXls2json = '/specprices/json_to_db'
-				location = 'aliases'
+				// location = 'aliases'
 			}
 			if (this.ID === 'SN') {
 				urlUpload = '/serial_numbers/upload_file'
 				urlXls2json = '/serial_numbers/json_to_db'
-				location = '/sn'
+				// location = '/sn'
 			}
 			if (this.file && this.ID) {
 				this.localLoading = true
@@ -105,8 +105,9 @@ export default {
 						} else {
 							this.$store.commit('setData', response.data)
 							setTimeout(() => {
-							// window.location.replace(location)
-								this.$router.push(location)
+								this.localLoading = false
+								window.location.reload()
+								// this.$router.replace(location)
 							}, 2000)
 						}
 					})

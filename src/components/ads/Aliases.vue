@@ -1,6 +1,6 @@
 <template>
   <v-container container--fluid>
-    <div v-if="!loadings && Specprices.length !== 0">
+    <div v-if="!loadings && specprices.length !== 0">
       <v-app-bar text color="white" class="text-lg-right elevation-2 mb-1">
         <v-toolbar-title>Псевдонимы</v-toolbar-title>
         <v-divider class="mx-3" inset vertical></v-divider>
@@ -18,12 +18,12 @@
       </v-app-bar>
       <v-data-table
             :headers="headers"
-            :items="Specprices"
+            :items="specprices"
             class="elevation-2"
             :search="search"
            	fixed-header
 			calculate-widths
-			:items-per-page=50
+			:items-per-page="50"
 			item-key="ID"
 			:mobile-breakpoint="550"
 			sort-by='ID'
@@ -52,28 +52,33 @@
               <td class="text-left">{{ item.alias }}</td>
 			  <td class="text-left">{{ getClientName(item.client) }}</td>
               <td class="text-left">{{ item.ART }}</td>
-              <td class="text-right">{{ item.price }}
+			  <td class="text-right">{{ item.price_agent ? item.price_agent.toLocaleString('ru') : '' }}
+				<v-icon v-if="item.currency_agent === 1 && item.price_agent" color="blue" small>mdi-currency-rub</v-icon>
+				<v-icon v-else-if="item.currency_agent === 2 && item.price_agent" color="yellow darken-2" small>mdi-currency-eur</v-icon>
+				<v-icon v-else-if="item.currency_agent === 3  && item.price_agent" color="green" small>mdi-currency-usd</v-icon>
+			  </td>
+              <td class="text-right">{{ item.price ? item.price.toLocaleString('ru') : '' }}
                 <v-icon v-if="item.currency === 1 && item.price" color="blue" small>mdi-currency-rub</v-icon>
 				<v-icon v-else-if="item.currency === 2 && item.price" color="yellow darken-2" small>mdi-currency-eur</v-icon>
 				<v-icon v-else-if="item.currency === 3  && item.price" color="green" small>mdi-currency-usd</v-icon>
               </td>
-			  <td class="text-right">{{ item.pricends }}
+			  <td class="text-right">{{ item.pricends ? item.pricends.toLocaleString('ru') : '' }}
                 <v-icon v-if="item.currency === 1  && item.pricends" color="blue" small>mdi-currency-rub</v-icon>
 				<v-icon v-else-if="item.currency === 2 && item.pricends" color="yellow darken-2" small>mdi-currency-eur</v-icon>
 				<v-icon v-else-if="item.currency === 3 && item.pricends" color="green" small>mdi-currency-usd</v-icon>
               </td>
               <td class="text-left">{{ item.EMAIL.split('@')[0] }}</td>
-              <td class="text-left">{{ getDate(item.DATE, 'Specprices') }}</td>
+              <td class="text-left">{{ new Date(item.DATE).toLocaleDateString('ru') }}</td>
 			  </tr>
             </template>
-			<template v-slot:body.prepend="{item}">
+			<template v-slot:body.prepend>
      			<td :colspan="headers.length" class="text-right">
-        			<a href="/static/example.xls">Пример XLS файла для импорта</a>
+        			<a href="/static/Цены_по_договору.xls">Пример XLS файла для импорта</a>
       			</td>
     		</template>
       </v-data-table>
     </div>
-    <div v-else-if="!loadings && Specprices.length === 0">
+    <div v-else-if="!loadings && specprices.length === 0">
       <v-layout row>
         <v-flex xs12 class="text-center pt-5">
           <v-progress-circular color="primary" indeterminate :size="100"></v-progress-circular>
@@ -84,16 +89,15 @@
 </template>
 
 <script>
-// import Api from '@/services/Api'
-import moment from 'moment'
+
+/* import moment from 'moment' */
 import UploadFile from './UploadFile'
 import { AclRule } from 'vue-acl'
-// import { eventBus } from '../../main.js'
+import { mapGetters } from 'vuex'
 
 export default {
 	data () {
 		return {
-			Specprices: [],
 			ID: 'ALIASES',
 			search: '',
 			pagination: {'sortBy': 'ID', 'descending': true},
@@ -105,6 +109,7 @@ export default {
 				{ text: 'Псевдоним', value: 'ALIAS', divider: true },
 				{ text: 'Клиент', value: 'client', divider: true },
 				{ text: 'Артикул 1С', value: 'ART', divider: true },
+				{ text: 'Цена посредник', value: 'price_agent', align: 'rigth', divider: true },
 				{ text: 'Спеццена', value: 'price', align: 'rigth', divider: true },
 				{ text: 'Спеццена(с НДС)', value: 'pricends', align: 'rigth', divider: true },
 				{ text: 'Автор', value: 'EMAIL', divider: true },
@@ -114,6 +119,7 @@ export default {
 	},
 
 	computed: {
+		...mapGetters(['specprices']),
 		loadings () {
 			return this.$store.getters.loadings
 		},
@@ -122,18 +128,6 @@ export default {
 		}
 	},
 	methods: {
-		getSpecprices () {
-			try {
-				this.$store.commit('setLoading', true)
-				this.$store.commit('clearError')
-
-				this.Specprices = this.$store.getters.specprices
-				this.$store.commit('setLoading', false)
-			} catch (error) {
-				this.$store.commit('setLoading', false)
-				this.$store.commit('setError', error.message)
-			}
-		},
 		getName (id) {
 			var obj = {}
 
@@ -143,12 +137,6 @@ export default {
 				if (key === 'zipNAME') {
 					return obj[key] + ' {' + obj.zipID + '}'
 				}
-			}
-		},
-		getDate (date, array) {
-			if (array === 'Specprices') {
-				var dt = this.Specprices.find(a => a.DATE === date).DATE
-				return moment(new Date(dt)).format('YYYY.MM.DD HH:mm')
 			}
 		},
 		getClientName (id) {
@@ -168,7 +156,6 @@ export default {
 		await this.$store.dispatch('fetchZip')
 		await this.$store.dispatch('fetchClients')
 		await this.$store.dispatch('fetchSpecprices')
-		await this.getSpecprices()
 	}
 }
 </script>

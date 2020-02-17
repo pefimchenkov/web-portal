@@ -1,13 +1,6 @@
 <template>
 	<v-container fluid>
-		<div v-if="!loading && Projects.length === 0">
-			<v-layout row wrap>
-				<v-flex xs12 class="text-center pt-5">
-					<v-progress-circular color="primary" indeterminate :size="100"></v-progress-circular>
-				</v-flex>
-			</v-layout>
-		</div>
-		<div v-else>
+		<div>
 			<v-toolbar text color="white" class="text-lg-right elevation-2 mb-1">
 				<v-toolbar-title>Непопавший факт: Проекты 1С</v-toolbar-title> 
 				<v-divider class="mx-3" inset vertical></v-divider>
@@ -32,6 +25,18 @@
 					nextIcon: 'mdi-plus'
 				}"
 			>
+			<template v-if="!loading" v-slot:no-data>
+				<v-alert
+					type="warning"
+					outlined
+					class="ma-3"
+				>
+					Данные отстутствуют.
+				</v-alert>
+			</template>
+			<template v-else v-slot:no-data>
+				<v-progress-circular color="primary" indeterminate :size="100"></v-progress-circular>
+			</template>
 			<template v-slot:item.Sum="{item}">
 				{{ item.Sum.toLocaleString('ru') + ' р.' }}
 			</template>
@@ -41,7 +46,6 @@
 </template>
 
 <script>
-import { AclRule } from 'vue-acl'
 
 export default {
 	props: ['Projects'],
@@ -63,15 +67,11 @@ export default {
 	computed: {
 		loading () {
 			return this.$store.getters.loading
-		},
-		Edit () {
-			return new AclRule('user').and('engineer').or('admin').generate()
 		}
 	},
 	methods: {
 	},
 	created () {
-		this.$store.dispatch('FETCH_STOCK_1C')
 	}
 }
 </script>

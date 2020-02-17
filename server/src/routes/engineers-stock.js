@@ -12,4 +12,6 @@ module.exports = app => {
 	app.post('/engineers_stock/send_decline', EngineersStock.sendDecline)
 	app.post('/engineers_stock/send_check', EngineersStock.sendCheck)
 	app.post('/engineers_stock/send_request_for_zip', EngineersStock.sendRequestForZip)
+	app.post('/engineers_stock/manual_add_zip', EngineersStock.manualAddZip)
+	app.post('/engineers_stock/save_comment', EngineersStock.saveComment)
 }

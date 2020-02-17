@@ -8,11 +8,12 @@ module.exports = app => {
 	app.get('/deals/list', async (req, res) => {
 		try {
 			const data = await db.query(`
-			SELECT CAST(IFNULL(CONCAT(1cb.id,jira.ID),1cb.id) AS DECIMAL(18,0)) UniqueId, 1cb.id id, client_1c, lp.name client_db, lpt.name client_1c_db, bill_1c, bill_date, bill_base, bill_base_date,
-				bill_parent, bill_parent_date, bill_reporter, firm, project_1c, rnh, ready, bill_sum, bill_pay, bill_ship,
-				jira.JiraKey jira_id, DATE(jira.CREATED) jira_date, jira.SUMMARY, jira.NAME jira_client, jira.pname STATUS, jira.STRINGVALUE jira_bill, jira.SM_SERV jira_sm,
-				jira.Litso, jira.Resolve, jira.MANAGER, jira.LEAD_ENG, jira.Dep, jira.Cmmnt, Dupl.qty, Zak.Zakupka,
-			CASE
+			SELECT
+			CAST(IFNULL(CONCAT(1cb.id,jira.ID),1cb.id) AS DECIMAL(18,0)) UniqueId, 1cb.id id, client_1c, lp.name client_db, lpt.name client_1c_db, bill_1c, 1cb.qty, bill_date, bill_base, bill_base_date,
+			bill_parent, bill_parent_date, bill_reporter, firm, project_1c, rnh, ready, bill_sum, bill_pay, bill_ship,
+			jira.JiraKey jira_id, DATE(jira.CREATED) jira_date, jira.SUMMARY, jira.NAME jira_client, jira.pname STATUS, jira.STRINGVALUE jira_bill, jira.SM_SERV jira_sm,
+			jira.Litso, jira.Resolve, jira.MANAGER, jira.LEAD_ENG, jira.Dep, jira.Cmmnt, Dupl.qty, Zak.Zakupka,
+			CASE 
 			WHEN Zak.Oplata LIKE '%Red%' THEN 'Red'
 			WHEN Zak.Oplata LIKE '%Yellow%' THEN 'Yellow'
 			WHEN Zak.Oplata LIKE '%Green%' THEN 'Green'
@@ -23,22 +24,31 @@ module.exports = app => {
 			SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(ships_info,'[',-1),' ',2),' ',1) LastShip,
 			SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(ships_info,'[',-1),' ',-2),' ',1) LastShipDate,
 			REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(ships_info,'[',-1),' ',-2),' ',-1),']','') LastShipSum
-			FROM 1C_Bills 1cb
+			FROM (
+			SELECT K id, client_1c, bill_1c, bill_date, bill_base, bill_base_date, bill_parent, bill_parent_date, bill_reporter, firm, project_1c, rnh, ready,
+			SUM(bill_sum) bill_sum, SUM(bill_pay) bill_pay, SUM(bill_ship) bill_ship,
+			COUNT(1) qty, GROUP_CONCAT(ships_info SEPARATOR '') ships_info
+			FROM (
+			SELECT *, id K FROM 1C_Bills b
+			UNION ALL
+			SELECT *, (SELECT MAX(id) FROM 1C_Bills)+id FROM 1C_Bills_1 b1) Bills
+			GROUP BY bill_1c
+			ORDER BY qty DESC, 1) 1cb
 			LEFT JOIN LegPers_1C lpt ON lpt.1c_id = 1cb.client_1c
 			LEFT JOIN LegPers lp ON lp.1c_id=1cb.client_1c
 			LEFT JOIN
 			(SELECT ji.ID, CONCAT(p.pkey,'-',ji.issuenum) JiraKey, ji.SUMMARY, ji.issuestatus, ist.pname, cfv.STRINGVALUE, cl.NAME,
-				ji.CREATED, cum.display_name MANAGER, cusm.display_name SM_SERV, GROUP_CONCAT(cuvi.display_name) LEAD_ENG, cfvz.TEXTVALUE Zadanie, zad.AUTHOR ZadAvtor, zad.CREATED ZadDate, cfvot.TEXTVALUE Otvet, ot.AUTHOR OtAvtor, ot.CREATED OtDate, cfvr.STRINGVALUE Reshen,
-				cfvol.STRINGVALUE Litso, st.Dep,
-				CASE
-				WHEN cfvr.STRINGVALUE IS NOT NULL THEN 'Решён'
-				WHEN IFNULL(zad.CREATED,0) > IFNULL(ot.CREATED,0) THEN 'Не отвечен'
-				WHEN IFNULL(zad.CREATED,0) < IFNULL(ot.CREATED,0) THEN 'Отвечен'
-				END Resolve,
+			ji.CREATED, cum.display_name MANAGER, cusm.display_name SM_SERV, GROUP_CONCAT(cuvi.display_name) LEAD_ENG, cfvz.TEXTVALUE Zadanie, zad.AUTHOR ZadAvtor, zad.CREATED ZadDate, cfvot.TEXTVALUE Otvet, ot.AUTHOR OtAvtor, ot.CREATED OtDate, cfvr.STRINGVALUE Reshen,
+			cfvol.STRINGVALUE Litso, st.Dep,
 			CASE
-				WHEN IFNULL(zad.CREATED,0) > IFNULL(ot.CREATED,0) THEN cfvz.TEXTVALUE
-				WHEN IFNULL(zad.CREATED,0) < IFNULL(ot.CREATED,0) THEN cfvot.TEXTVALUE
-				END Cmmnt,
+			WHEN cfvr.STRINGVALUE IS NOT NULL THEN 'Решён'
+			WHEN IFNULL(zad.CREATED,0) > IFNULL(ot.CREATED,0) THEN 'Не отвечен'
+			WHEN IFNULL(zad.CREATED,0) < IFNULL(ot.CREATED,0) THEN 'Отвечен'
+			END Resolve,
+			CASE
+			WHEN IFNULL(zad.CREATED,0) > IFNULL(ot.CREATED,0) THEN cfvz.TEXTVALUE
+			WHEN IFNULL(zad.CREATED,0) < IFNULL(ot.CREATED,0) THEN cfvot.TEXTVALUE
+			END Cmmnt,
 			IF(ExtractValue(cfsp.TEXTVALUE,'/content/value') LIKE '% %','Red','') Spec,
 			ExtractValue(cfsp.TEXTVALUE,'/content/value') SpecS,
 			IF(il.SOURCE IS NULL,NULL,IF(cfcs.NUMBERVALUE IS NULL,'Bold','Italic')) Cont,
@@ -57,20 +67,21 @@ module.exports = app => {
 			LEFT JOIN jiradb.cwd_user cusm ON cusm.user_name=cl.SM_SERV
 			LEFT JOIN STAFF st ON st.user=cfvol.STRINGVALUE
 			LEFT JOIN
-			(SELECT ch.issueid, ch.CREATED, ch.NEWSTRING, ch.AUTHOR FROM
-				(SELECT issueid, CREATED, NEWSTRING, AUTHOR
-				FROM jiradb.changegroup chg
-				LEFT JOIN jiradb.changeitem chi ON chi.groupid=chg.ID
-				WHERE chi.FIELD='Задание от руководителя'
-				ORDER BY CREATED DESC) ch
+			(SELECT ch.issueid, ch.CREATED, ch.NEWSTRING, ch.AUTHOR
+			FROM
+			(SELECT issueid, CREATED, NEWSTRING, AUTHOR
+			FROM jiradb.changegroup chg
+			LEFT JOIN jiradb.changeitem chi ON chi.groupid=chg.ID
+			WHERE chi.FIELD='Задание от руководителя'
+			ORDER BY CREATED DESC) ch
 			GROUP BY ch.issueid) zad ON zad.issueid=ji.ID
 			LEFT JOIN
 			(SELECT ch.issueid, ch.CREATED, ch.NEWSTRING, ch.AUTHOR FROM
-				(SELECT issueid, CREATED, NEWSTRING, AUTHOR
-				FROM jiradb.changegroup chg
-				LEFT JOIN jiradb.changeitem chi ON chi.groupid=chg.ID
-				WHERE chi.FIELD='Комментарий ответственного лица'
-				ORDER BY CREATED DESC) ch
+			(SELECT issueid, CREATED, NEWSTRING, AUTHOR
+			FROM jiradb.changegroup chg
+			LEFT JOIN jiradb.changeitem chi ON chi.groupid=chg.ID
+			WHERE chi.FIELD='Комментарий ответственного лица'
+			ORDER BY CREATED DESC) ch
 			GROUP BY ch.issueid) ot ON ot.issueid=ji.ID
 			LEFT JOIN jiradb.customfieldvalue cfsp ON ji.ID=cfsp.ISSUE ANd cfsp.CUSTOMFIELD=22608
 			LEFT JOIN jiradb.jiraissue jis ON jis.ID=SUBSTRING_INDEX(ExtractValue(cfsp.TEXTVALUE,'/content/value'),' ',1)
@@ -82,7 +93,8 @@ module.exports = app => {
 			WHERE ji.issuetype IN (10, 12300, 12, 10201, 12400, 14200) AND ji.CREATED >= '2019-08-01'
 			GROUP BY ji.ID) jira ON jira.STRINGVALUE=1cb.bill_1c
 			LEFT JOIN
-			(SELECT bill_1c bill, COUNT(1) qty FROM
+			(SELECT bill_1c bill, COUNT(1) qty
+			FROM
 			(SELECT cfv.STRINGVALUE
 			FROM jiradb.jiraissue ji
 			LEFT JOIN jiradb.customfieldvalue cfv ON cfv.ISSUE=ji.ID AND cfv.CUSTOMFIELD=10900
@@ -96,10 +108,10 @@ module.exports = app => {
 			GROUP_CONCAT(DISTINCT Zakupki.Oplata) Oplata
 			FROM
 			(SELECT ji.ID IDs, CONCAT('ZAKUPKA-',ji.issuenum) Zakupka, cf1с.STRINGVALUE Bill, cfop.STRINGVALUE Str,
-			CASE
-			WHEN (cfop.STRINGVALUE IS NULL OR cfop.STRINGVALUE=20440) THEN 'Red'
-			WHEN (cfop.STRINGVALUE=20437) THEN 'Green'
-			ELSE 'Yellow'
+			CASE 
+				WHEN (cfop.STRINGVALUE IS NULL OR cfop.STRINGVALUE=20440) THEN 'Red'
+				WHEN (cfop.STRINGVALUE=20437) THEN 'Green'
+				ELSE 'Yellow'
 			END Oplata
 			FROM jiradb.jiraissue ji
 			LEFT JOIN jiradb.customfieldvalue cf1с ON cf1с.ISSUE=ji.ID AND cf1с.CUSTOMFIELD=10900

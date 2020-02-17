@@ -14,6 +14,14 @@
 					ref="prop"
 				>
 				</v-select>
+				<v-textarea
+					v-model="comment"
+					label="Комментарий:"
+					auto-grow
+					outlined
+					rows="3"
+					row-height="25"
+				></v-textarea>
 				<v-card-actions>
 					<v-spacer></v-spacer>
 					<v-btn
@@ -80,8 +88,8 @@
 					</a>
 			</template>
 			<template v-slot:item.action="{ item }">
-				<template v-if="item.Email">
-					<v-btn :disabled="email !== user" small icon @click.prevent="open(item)">
+				<template v-if="item.email_address">
+					<v-btn :disabled="(email !== user && user !== item.email_lead)" small icon @click.prevent="open(item)">
 							<v-icon small color="grey">mdi-pencil</v-icon>
 					</v-btn>
 					<v-btn small icon @click.prevent="send(item)">
@@ -90,6 +98,13 @@
 				</template>
     		</template>
 			<template v-if="PersonalItems" v-slot:no-data>
+				<v-row justify="center" align="center">
+					<v-col cols="12" class="text-center">
+						<div>Запчасти отстутствуют на складе</div>
+					</v-col>
+				</v-row>
+			</template>
+			<template v-if="!PersonalItems" v-slot:no-data>
 				<v-row justify="center" align="center">
 					<v-col cols="12" class="text-center">
 						<v-progress-circular :size="100" color="primary" indeterminate></v-progress-circular>
@@ -113,6 +128,7 @@
 		data () {
 			return {
 				prop: '',
+				comment: '',
 				settings,
 				dialog: false,
 				localloading: false,
@@ -160,8 +176,23 @@
 						selected: true,
 						divider: true
 					},
+					{ text: 'Маркет ID',
+						value: 'MarketId',
+						selected: true,
+						divider: true
+					},
+					{ text: 'АРТ 1С',
+						value: 'ART_1C',
+						selected: true,
+						divider: true
+					},
 					{ text: 'Дата решения',
 						value: 'RESOLUTIONDATE',
+						selected: true,
+						divider: true
+					},
+					{ text: 'Ведущий',
+						value: 'email_lead',
 						selected: true,
 						divider: true
 					},
@@ -177,9 +208,13 @@
 			...mapGetters(['EngineersStock', 'EngineersStockArchive', 'EngineersStockDetails']),
 			PersonalItems () {
 				if (this.activeTab && this.activeTab === 'tab-archive') {
-					return this.EngineersStockArchive.find(item => (item.JIRA_ID === parseInt(this.zipID)) && (item.Eng === this.Eng))
+					return this.EngineersStockArchive.find(item => (item.JIRA_ID === parseInt(this.zipID)) && (item.Eng === this.Eng && !item.Eng))
 				} else {
-					return this.EngineersStock.find(item => (item.JIRA_ID === parseInt(this.zipID)))
+					if (this.Eng) {
+						return this.EngineersStock.find(item => (item.JIRA_ID === parseInt(this.zipID)) && (item.Eng === this.Eng))
+					} else {
+						return this.EngineersStock.find(item => (item.JIRA_ID === parseInt(this.zipID)) && (!item.Eng))
+					}
 				}
 			},
 			user () {
@@ -203,18 +238,24 @@
 			},
 			close () {
 				this.dialog = false
+				this.prop = null
+				this.comment = ''
 			},
 			save () {
-				let type
-				const now = moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
-				if (this.prop === 'Новый') type = 2
-				if (this.prop === 'Можно восстановить') type = 1
-				if (this.prop === 'Отсутствующий') type = 0
-				this.$store.dispatch('setConditionStock', { jiraID: this.editedItem.ID, zipID: this.zipID, type: type, user: this.currentUser.email, date: now })
-					.then(() => {
-						this.$store.commit('setData', 'Зип успешно перемещён.')
-						this.dialog = false
-					})
+				if (this.prop) {
+					const now = moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+					let type
+					if (this.prop === 'Новый') type = 2
+					if (this.prop === 'Можно восстановить') type = 1
+					if (this.prop === 'Отсутствующий') type = 0
+					this.$store.dispatch('setConditionStock', { jiraID: this.editedItem.ID, zipID: this.zipID, type: type, user: this.user, comment: this.comment, date: now })
+						.then(() => {
+							this.$store.commit('setData', 'Зип успешно перемещён.')
+							this.dialog = false
+						})
+				} else {
+					this.$store.commit('setError', 'Не все поля заполнены!')
+				}
 			},
 			async send (item) {
 				if (await this.$refs.confirm.open('Сделать запрос', 'Вы уверены?', { color: 'green' })) {
@@ -235,7 +276,6 @@
 			await window.scrollTo(0, 0)
 			await this.$store.dispatch('fetchEngineersStock')
 			if (this.PersonalItems) this.$store.dispatch('fetchEngineersStockDetails', { ids: await this.PersonalItems.IDs, zipID: this.zipID, userName: this.Eng })
-			console.log(await this.PersonalItems)
 		}
 	}
 </script>

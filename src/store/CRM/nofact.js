@@ -15,24 +15,30 @@ export default {
 	},
 	actions: {
 		fetchNoFactLegpers ({ commit }) {
+			commit('setLoading', true)
 			return new Promise((resolve, reject) => {
 				getNoFactLegpers()
 					.then(response => {
 						commit('LOAD_NO_FACT_LEGPERS', response)
 						resolve()
+						commit('setLoading', false)
 					}).catch(error => {
 						reject(error)
+						commit('setLoading', false)
 					})
 			})
 		},
 		fetchNoFactProjects ({ commit }) {
+			commit('setLoading', true)
 			return new Promise((resolve, reject) => {
 				getNoFactProjects()
 					.then(response => {
 						commit('LOAD_NO_FACT_PROJECTS', response)
 						resolve()
+						commit('setLoading', false)
 					}).catch(error => {
 						reject(error)
+						commit('setLoading', false)
 					})
 			})
 		}

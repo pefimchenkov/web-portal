@@ -37,8 +37,8 @@ exports.fetchEngineersStockArchive = (req, res) => {
 	})
 }
 exports.fetchEngineersStockDetails = (req, res) => {
-	const { ids, zipID, userName } = req.body
-	EngineersStock.getEngineersStockDetails(ids, parseInt(zipID), JSON.stringify(userName), (err, data) => {
+	const { ids, zipID } = req.body
+	EngineersStock.getEngineersStockDetails(ids, parseInt(zipID), (err, data) => {
 		if (err) {
 			res.status(500).send({
 				message:
@@ -48,14 +48,27 @@ exports.fetchEngineersStockDetails = (req, res) => {
 	})
 }
 exports.setConditionStock = (req, res) => {
-	const { jiraID, zipID, type, user, date } = req.body
-	EngineersStock.setConditionStock(parseInt(jiraID), parseInt(zipID), parseInt(type), JSON.stringify(user), JSON.stringify(date), (err, data) => {
+	const { jiraID, zipID, type, user, comment, date } = req.body
+	EngineersStock.setConditionStock(parseInt(jiraID), parseInt(zipID), parseInt(type), JSON.stringify(user), JSON.stringify(comment), JSON.stringify(date), (err, data) => {
 		if (err) {
 			res.status(500).send({
 				message:
 					err.message || `Ошибка при установке состояния (СКЛАД ИНЖЕНЕРОВ).`
 			})
-		} else res.send(data = { code: 20000, data: data })
+		} else {
+			server.send(
+				{
+					text: parseInt(type) === 2 ? 'В зелёной таблице появилась новая запчасть' : 'В оранжевой таблице появилась новая запчасть',
+					from: '<robot@tsd-group.ru>',
+					to: parseInt(type) === 2 ? '<zsa@tsd-group.ru>' : '<zsa@tsd-group.ru, petrovichev@service-tsd.ru>',
+					subject: parseInt(type) === 2 ? `Обновление списка новых ЗИП` : `Обновление списка ЗИП, которые можно восстановить`
+				},
+				function (err, message) {
+					console.log(err || message)
+				}
+			)
+			res.send(data = { code: 20000, data: data })
+		}
 	})
 }
 exports.delete = (req, res) => {
@@ -67,17 +80,6 @@ exports.delete = (req, res) => {
 					err.message || `Ошибка при удалении состояния (СКЛАД ИНЖЕНЕРОВ).`
 			})
 		} else {
-			/* server.send(
-				{
-					text: date,
-					from: '<robot@tsd-group.ru>',
-					to: '<epf@tsd-group.ru>',
-					subject: `Удаление ЗИП с ${id} со Склада Инженеров`
-				},
-				function (err, message) {
-					console.log(err || message)
-				}
-			) */
 			res.send(data = { code: 20000, data: data })
 		}
 	})
@@ -128,11 +130,11 @@ exports.sendCheck = (req, res) => {
 }
 exports.sendRequestForZip = (req, res) => {
 	const { item, user, email } = req.body
-	const { ZipName } = item
+	const { ZipName, IssKey, NomRem } = item
 	const date = moment(new Date()).format('DD.MM.YYYY HH:mm:ss')
 	server.send(
 		{
-			text: 'Пользователь ' + user + ' запросил [' + ZipName + '] со склада ' + item.Email + '.\nДля перемещения ЗИПа перейдите по ссылке: http://webportal.tsd-group.ru/engineers_stock',
+			text: 'Пользователь ' + user + ' запросил [' + ZipName + ', номер ремонта: ' + IssKey + '] со склада ' + item.Email + '.\n\r Cсылка на ремонт: http://http://support.tsd-group.ru/browse/' + NomRem,
 			from: user,
 			to: `<${email}, ${item.Email}>`,
 			subject: date + ' - ' + 'Склад инженеров: запрос ЗИП (' + ZipName + ')'
@@ -142,4 +144,36 @@ exports.sendRequestForZip = (req, res) => {
 		}
 	)
 	res.send({ code: 20000, data: req.body })
+}
+exports.manualAddZip = (req, res) => {
+	const date = moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+	const { zip, type, engineer, user, comment } = req.body
+	EngineersStock.manualAddZip(
+		parseInt(zip.marketID),
+		parseInt(zip.marketid),
+		parseInt(type),
+		JSON.stringify(engineer.user_name),
+		JSON.stringify(user),
+		JSON.stringify(comment),
+		JSON.stringify(date),
+		(err, data) => {
+			if (err) {
+				res.status(500).send({
+					message:
+						err.message || `Ошибка при ручном добавлении ЗИП (СКЛАД ИНЖЕНЕРОВ).`
+				})
+			} else res.send(data = { code: 20000, data: data })
+		})
+}
+exports.saveComment = (req, res) => {
+	const { id, comment } = req.body
+	EngineersStock.saveComment(parseInt(id), JSON.stringify(comment),
+		(err, data) => {
+			if (err) {
+				res.status(500).send({
+					message:
+						err.message || `Ошибка при редактировании комментария (СКЛАД ИНЖЕНЕРОВ).`
+				})
+			} else res.send(data = { code: 20000, data: data })
+		})
 }

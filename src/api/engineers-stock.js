@@ -77,3 +77,17 @@ export function sendRequestForZip (data) {
 		data: data
 	})
 }
+export function manualAddZip (data) {
+	return request({
+		url: '/engineers_stock/manual_add_zip',
+		method: 'post',
+		data: data
+	})
+}
+export function saveComment (data) {
+	return request({
+		url: '/engineers_stock/save_comment',
+		method: 'post',
+		data: data
+	})
+}

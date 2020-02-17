@@ -1,5 +1,5 @@
 import { getEngineersStock, getEngineersStockArchive, getEngineersStockGood, getEngineersStockDetails,
-	setConditionStock, deleteEngineersStock, sendRequest, sendApprove, sendCheck, sendDecline, sendRequestForZip } from '@/api/engineers-stock'
+	setConditionStock, deleteEngineersStock, sendRequest, sendApprove, sendCheck, sendDecline, sendRequestForZip, manualAddZip, saveComment } from '@/api/engineers-stock'
 import moment from 'moment'
 
 export default {
@@ -57,7 +57,30 @@ export default {
 			obj.date = payload.date
 		},
 		SEND_REQUEST_FOR_ZIP: (state, payload) => {
-			console.log(payload)
+			// console.log(payload)
+		},
+		MANUAL_ADD_ZIP: (state, { payload, insertId }) => {
+			const { marketID, marketNAME } = payload.zip
+			const engineer = payload.engineer.user_name
+			const type = payload.type
+			const user = payload.user
+			const comment = payload.comment
+			const obj = {
+				id: insertId,
+				zip_id: marketID,
+				zip: marketNAME,
+				type: type,
+				sklad: 2,
+				comment: comment,
+				eng: engineer,
+				date: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+				executor: user
+			}
+			state.EngineersStockGood.push(obj)
+			// console.log(state.EngineersStockGood)
+		},
+		SAVE_COMMENT: (state, payload) => {
+			// console.log(payload)
 		}
 	},
 	actions: {
@@ -95,6 +118,7 @@ export default {
 			})
 		},
 		fetchEngineersStockDetails({ commit }, payload) {
+			console.log(payload)
 			return new Promise((resolve, reject) => {
 				getEngineersStockDetails(payload).
 					then(response => {
@@ -176,6 +200,31 @@ export default {
 				sendRequestForZip(payload).
 					then(() => {
 						commit('SEND_REQUEST_FOR_ZIP', payload)
+						resolve()
+					}).catch(error => {
+						reject(error)
+					})
+			})
+		},
+		manualAddZip({ commit }, payload) {
+			return new Promise((resolve, reject) => {
+				manualAddZip(payload).
+					then((res) => {
+						if (res.insertId) {
+							const { insertId } = res
+							commit('MANUAL_ADD_ZIP', { payload, insertId })
+							resolve(res.insertId)
+						}
+					}).catch(error => {
+						reject(error)
+					})
+			})
+		},
+		saveComment({ commit }, payload) {
+			return new Promise((resolve, reject) => {
+				saveComment(payload).
+					then(() => {
+						commit('SAVE_COMMENT', payload)
 						resolve()
 					}).catch(error => {
 						reject(error)

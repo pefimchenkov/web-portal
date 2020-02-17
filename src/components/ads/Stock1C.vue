@@ -1,6 +1,6 @@
 <template>
 	<v-container fluid>
-		<div v-if="!loading && Stock1C.length === 0">
+		<div v-if="!loading && Stock1C.length === 0"> {{ Stock1C }}
 			<v-layout row wrap>
 				<v-flex xs12 class="text-center pt-5">
 					<v-progress-circular color="primary" indeterminate :size="100"></v-progress-circular>

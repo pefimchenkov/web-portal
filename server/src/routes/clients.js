@@ -30,29 +30,30 @@ module.exports = app => {
 		let data = []
 		try {
 			data = await db.query(`
-				SELECT
-				C.ID, C.NAME, GROUP_CONCAT(DISTINCT LP.name SEPARATOR ", ") LEGPERS, C.PROJECT, C.MANAGER, C.HEAD_MANAGER, C.CRM,
-				C.AIDC_SALE, C.AIDC_SALE_ZIP, C.AIDC_SERV, C.IT, OM_SALE, OM_SALE_ZIP, OM_SERV, OM_IT,
-				cp.AIDC_SALE P_SALE, cp.AIDC_SALE_ZIP P_SALE_ZIP, cp.AIDC_SERV P_SERV, cp.IT P_IT,
-				SUM(IF(1cb.project_1c IN ('Продажи'),1cj.doc_sum,0)) FACT_AIDC_SALE,
-				SUM(IF(1cb.project_1c IN ('Продажи (ЗИП)','Продажи (Склад)'),1cj.doc_sum,0)) FACT_AIDC_SALE_ZIP,
-				SUM(IF(1cb.project_1c IN ('Ремонт','Сервисный контракт','Ремонт (ФИКС)','Аренда Оборудования','Сервисный контракт (ФИКС)','СКС'),1cj.doc_sum,0)) FACT_AIDC_SERV,
-				SUM(IF(1cb.project_1c IN ('IT'),1cj.doc_sum,0)) FACT_IT,
-				SUM(1cj.doc_sum) FACT,
-				1cj.doc_date,
-				CONCAT(IF(C.AIDC_SALE IS NULL AND SUM(IF(1cb.project_1c IN ('Продажи'),1cj.doc_sum,0))>0,'sale ',''),
-				IF(C.AIDC_SALE_ZIP IS NULL AND SUM(IF(1cb.project_1c IN ('Продажи (ЗИП)','Продажи (Склад)'),1cj.doc_sum,0))>0,'sale_zip ',''),
-				IF(C.AIDC_SERV IS NULL AND SUM(IF(1cb.project_1c IN ('Ремонт','Сервисный контракт','Ремонт (ФИКС)','Аренда Оборудования','Сервисный контракт (ФИКС)','СКС'),1cj.doc_sum,0))>0,'serv ',''),
-				IF(C.IT IS NULL AND SUM(IF(1cb.project_1c IN ('IT'),1cj.doc_sum,0))>0,'it','')) marker
-				FROM CLIENTS C
-				LEFT JOIN LegPers LP ON LP.client_id = C.ID
-				LEFT JOIN crm_percents cp ON cp.crm_id=C.CRM_TYPE
-				LEFT JOIN 1C_Bills 1cb ON 1cb.client_1c=LP.1c_id
-				LEFT JOIN 1C_Journal 1cj ON 1cj.doc_base_num=1cb.bill_1c AND 1cj.doc_type='Реализация' AND (1cj.doc_date >= '2019-10-01' OR 1cj.doc_date IS NULL)
-				WHERE C.PROJECT != 'DIVISION'
-				GROUP BY C.ID
-				ORDER BY C.ID
-				`)
+			SELECT
+			C.ID, C.NAME, GROUP_CONCAT(DISTINCT LP.name SEPARATOR ", ") LEGPERS, C.PROJECT, C.MANAGER, C.HEAD_MANAGER, C.CRM, C.CRM_TYPE,
+			C.AIDC_SALE, C.AIDC_SALE_ZIP, C.AIDC_SERV, C.IT, OM_SALE, OM_SALE_ZIP, OM_SERV, OM_IT,
+			IFNULL(cpm.AIDC_SALE,cp.AIDC_SALE) P_SALE, IFNULL(cpm.AIDC_SALE_ZIP,cp.AIDC_SALE_ZIP) P_SALE_ZIP, IFNULL(cpm.AIDC_SERV,cp.AIDC_SERV) P_SERV, IFNULL(cpm.IT,cp.IT) P_IT,
+			SUM(IF(1cb.project_1c IN ('Продажи'),1cj.doc_sum,0)) FACT_AIDC_SALE,
+			SUM(IF(1cb.project_1c IN ('Продажи (ЗИП)','Продажи (Склад)'),1cj.doc_sum,0)) FACT_AIDC_SALE_ZIP,
+			SUM(IF(1cb.project_1c IN ('Ремонт','Сервисный контракт','Ремонт (ФИКС)','Аренда Оборудования','Сервисный контракт (ФИКС)','СКС'),1cj.doc_sum,0)) FACT_AIDC_SERV,
+			SUM(IF(1cb.project_1c IN ('IT'),1cj.doc_sum,0)) FACT_IT,
+			SUM(1cj.doc_sum) FACT,
+			1cj.doc_date,
+			CONCAT(IF(C.AIDC_SALE IS NULL AND SUM(IF(1cb.project_1c IN ('Продажи'),1cj.doc_sum,0))>0,'sale ',''),
+			IF(C.AIDC_SALE_ZIP IS NULL AND SUM(IF(1cb.project_1c IN ('Продажи (ЗИП)','Продажи (Склад)'),1cj.doc_sum,0))>0,'sale_zip ',''),
+			IF(C.AIDC_SERV IS NULL AND SUM(IF(1cb.project_1c IN ('Ремонт','Сервисный контракт','Ремонт (ФИКС)','Аренда Оборудования','Сервисный контракт (ФИКС)','СКС'),1cj.doc_sum,0))>0,'serv ',''),
+			IF(C.IT IS NULL AND SUM(IF(1cb.project_1c IN ('IT'),1cj.doc_sum,0))>0,'it','')) marker
+			FROM CLIENTS C
+			LEFT JOIN LegPers LP ON LP.client_id = C.ID
+			LEFT JOIN crm_percents cp ON cp.crm_id=C.CRM_TYPE
+			LEFT JOIN crm_percents cpm ON cpm.crm_id=C.ID
+			LEFT JOIN 1C_Bills 1cb ON 1cb.client_1c=LP.1c_id
+			LEFT JOIN 1C_Journal_1 1cj ON 1cj.doc_base_num=1cb.bill_1c AND 1cj.doc_type='Реализация' AND (1cj.doc_date >= '2020-01-01' OR 1cj.doc_date IS NULL)
+			WHERE C.PROJECT != 'DIVISION'
+			GROUP BY C.ID
+			ORDER BY C.ID
+			`)
 			res.json(data)
 		} catch (error) {
 			console.log(error)
