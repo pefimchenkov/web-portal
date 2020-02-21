@@ -3,7 +3,7 @@
 	  	<v-toolbar flat color="primary lighten-2" class="mb-3" dark>
       		<v-toolbar-title>Профиль пользователя</v-toolbar-title>
     	</v-toolbar>
-			<v-tabs vertical v-model="activeTab" class="vertical-tabs">
+			<v-tabs vertical v-model="activeTab" class="vertical-tabs" slider-size="3">
 
 				<v-tab href="#tab-data">
 				<v-icon left>mdi-information-variant</v-icon>
@@ -25,7 +25,7 @@
 				<v-tabs-slider></v-tabs-slider>
 
 				<v-tab-item :value="'tab-data'" class="ml-10">
-					<v-card class="mx-auto">
+					<v-card class="mx-auto" outlined>
 						<v-row class="ma-auto">
 							<v-col class="text-center" xs="12" sm="12" md="4" lg="4" xl="4">
 								<v-avatar size='300' tile>
@@ -89,7 +89,7 @@
 				</v-tab-item>
 
 				<v-tab-item :value="'tab-filters'" class="ml-10">
-					<v-card>
+					<v-card outlined>
 					<v-treeview
 						:items='items'
 						:active.sync='active'
@@ -491,5 +491,8 @@ export default {
 }
 .vertical-tabs [role="tab"] {
 	justify-content: flex-start;
+}
+.v-tab--active {
+	background-color: #e8e8e8e8 !important;
 }
 </style>

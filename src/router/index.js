@@ -14,7 +14,7 @@ const Client = resolve => require(['@/views/Clients/client'], resolve)
 const ZipList = resolve => require(['@/components/ads/ZipList'], resolve)
 const CatalogZip = resolve => require(['@/components/ads/CatalogZip'], resolve)
 const Zip = resolve => require(['@/components/ads/Zip'], resolve)
-const ZipPrices = resolve => require(['@/components/ads/ZipPrices'], resolve)
+const ZipPrices = resolve => require(['@/views/market/ZipPrices.vue'], resolve)
 const Market = resolve => require(['@/components/ads/Market'], resolve)
 const Aliases = resolve => require(['@/components/ads/Aliases'], resolve)
 const SN = resolve => require(['@/components/ads/SN'], resolve)
@@ -28,12 +28,6 @@ const Budget = resolve => require(['@/views/CRM/Budget'], resolve)
 const Test = resolve => require(['@/components/ads/test'], resolve)
 const NotFound = resolve => require(['../404'], resolve)
 const Forbidden = resolve => require(['../Forbidden'], resolve)
-
-/* import Ad from '@/components/ads/Ad'
-import AdList from '@/components/ads/AdList'
-import NewAd from '@/components/ads/NewAd' */
-
-// import { AclRule } from 'vue-acl'
 
 Vue.use(Router)
 

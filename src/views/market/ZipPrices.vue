@@ -1,6 +1,7 @@
 <template>
   <v-container fluid>
-	  <v-dialog
+	<ConfirmWithCount ref="confirm_with_count" @Count="addItemToBasket"></ConfirmWithCount>
+	<v-dialog
     	v-model="showForFilter"
     	width="600"
 		@click="showForFilter = false"
@@ -19,6 +20,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+
 	<v-dialog v-model="showFilterName" width="500px">
 		<v-card class="pa-3">
         <v-card-title class="headline">Введите название для фильтра</v-card-title>
@@ -87,7 +89,7 @@
 								<v-avatar color="warning mr-2">€</v-avatar>
 								<b>{{ Euro }}</b>
 							</v-chip>
-							<appEditRate v-if="$acl.check('Edit')"></appEditRate>
+							<EditRate v-if="$acl.check('Edit')"></EditRate>
 						</v-flex>
 						<v-flex xs3 sm3 md3 lg2 xl1 align-self-center v-if="$acl.check('Edit')">
 							<v-menu offset-y>
@@ -130,7 +132,7 @@
 						>
 						<template v-slot:activator="{ on }">
 							<v-btn v-on="on">
-								<v-icon dark class="mr-2">menu</v-icon>
+								<v-icon dark class="mr-2">settings</v-icon>
 								Настройки
 							</v-btn>
 						</template>
@@ -193,7 +195,7 @@
 							<v-btn
 							v-on="on"
 						>
-							<v-icon dark class="mr-2">menu</v-icon>
+							<v-icon dark class="mr-2">filter_list</v-icon>
 							Фильтры
 						</v-btn>
 						</template>
@@ -234,10 +236,18 @@
 						</v-menu>
 					</v-flex>
 					<v-spacer></v-spacer>
+					<v-flex xs1 v-if="Basket || CurrentOrder.length > 0">
+						<Basket></Basket>
+					</v-flex>
+					<v-spacer></v-spacer>
+					<v-flex xs1 v-if="Orders.length > 0">
+						<Orders></Orders>
+					</v-flex>
+					<v-spacer></v-spacer>
 					<v-dialog v-model="dialog" fullscreen persistent scrollable :disabled="$acl.not.check('Edit')" @keydown.esc="dialog = false">
 						<template v-slot:activator="{on}">
 							<v-btn v-on="$acl.not.check('Edit') ? '' : on" color="info" dark class="mt-1" :disabled="$acl.not.check('Edit')">
-							<v-icon class="mr-2">add</v-icon>Добавить
+							<v-icon>add</v-icon>
 						</v-btn>
 						</template>
 						<v-card>
@@ -738,6 +748,7 @@
 		<template v-slot:item.action="{ item }">
 			<v-icon small class="mr-2" @click="editItem(item)" :disabled="$acl.not.check('Edit')">edit</v-icon>
 				<v-icon small @click="deleteItem(item)" :disabled="$acl.not.check('Edit')">delete</v-icon>
+				<v-icon small @click="itemToBasket(item)" :disabled="$acl.not.check('Edit')">shopping_basket</v-icon>
 				<v-btn text fab small left :to="'/zip_prices/' + item.marketid">
               		<v-icon>more_horiz</v-icon>
             	</v-btn>
@@ -761,15 +772,24 @@
 
 <script>
 import Api from '@/services/Api'
-import { formatDate } from '../../services/helpers'
-import { eventBus } from '../../main.js'
-import EditRate from './EditRate'
+import { formatDate } from '@/services/helpers'
+import { eventBus } from '@/main.js'
+import EditRate from './components/EditRate'
+import Basket from './components/basket.vue'
+import Orders from './components/orders.vue'
+import ConfirmWithCount from '@/components/shared/ConfirmWithCount.vue'
 import moment from 'moment'
 import _ from 'lodash'
 import GetConfig from '@/services/GetConfig'
 import { AclRule } from 'vue-acl'
 
 export default {
+	components: {
+		Basket,
+		Orders,
+		EditRate,
+		ConfirmWithCount
+	},
 	data () {
 		return {
 			menuMarketDate: false,
@@ -808,11 +828,13 @@ export default {
 			AllTypes: [],
 			Parts: [],
 			Filters: [],
+			CurrentOrder: [],
 			search: '',
 			selectedImage: null,
 			imageWidth: '',
 			filtered: '',
 			show: true,
+			showShop: false,
 			showForFilter: false,
 			activeFilterName: '',
 			active: 'tab-1',
@@ -1277,7 +1299,13 @@ export default {
 			return new AclRule('user').and('engineer').or('admin').generate()
 		},
 		marketSupp () { return _.uniq(this.multiSelects.marketSupp) },
-		marketCond () { return _.uniq(this.multiSelects.marketCond) }
+		marketCond () { return _.uniq(this.multiSelects.marketCond) },
+		Basket () {
+			return localStorage.getItem('marketBasket')
+		},
+		Orders () {
+			return localStorage.getItem('marketOrders')
+		}
 	},
 	watch: {
 		dialog (val) {
@@ -1702,7 +1730,6 @@ export default {
 			this.editedIndex = this.ZipList.indexOf(item)
 			if (typeof item.marketPRICE === 'number') item.marketPRICE = JSON.stringify(item.marketPRICE)
 			this.editedItem = Object.assign({}, item)
-			console.log(this.editedItem)
 			this.marketTitle = this.editedItem.marketNAME
 			this.ART_1C = item.marketART
 			if (this.editedItem.ZipAfterSave === undefined || _.isEmpty(this.editedItem.ZipAfterSave)) {
@@ -1769,13 +1796,40 @@ export default {
 			this.editedIndex = -1
 		},
 
+		/*     Корзина     */
+
+		async itemToBasket (item) {
+			if (item.marketPRICE && item.marketPRICE !== 0) {
+				if (await this.$refs.confirm_with_count.open('Введите необходимое кол-во', 'Добавить?', item.marketid, { color: 'orange' })) {
+					this.$store.commit('setData', 'Позиция добавлена в корзину.')
+				} else {
+					this.$store.commit('setInfo', 'Добавление отменено.')
+				}
+			} else {
+				this.$store.commit('setInfo', 'Товар не имеет цены! Добавление не может быть продолжено.')
+			}
+		},
+		addItemToBasket (data) {
+			if (localStorage.getItem('marketBasket')) {
+				const marketBasket = JSON.parse(localStorage.getItem('marketBasket'))
+				marketBasket.CurrentOrder.push(data)
+				localStorage.setItem('marketBasket', JSON.stringify({ CurrentOrder: marketBasket.CurrentOrder }))
+				this.$store.dispatch('setBasket', { CurrentOrder: marketBasket.CurrentOrder })
+			} else {
+				this.CurrentOrder.push(data)
+				localStorage.setItem('marketBasket', JSON.stringify({ CurrentOrder: this.CurrentOrder }))
+				this.$store.dispatch('setBasket', { CurrentOrder: this.CurrentOrder })
+			}
+		},
+
+		/* ============== */
+
 		save () {
 			if (this.editedIndex > -1) {
 				const objValid = () => {
 					if (this.editedItem.elementTYPE === 1) return this.$refs.objZIP.validate()
 					if (this.editedItem.elementTYPE === 2) return this.$refs.objMODELS.validate()
 				}
-				console.log(objValid())
 				if (this.$refs.price.validate() && this.$refs.ratio.validate() && this.$refs.cur.validate() && objValid()) {
 					this.localLoading = true
 					let editedItemId = []
@@ -2083,6 +2137,8 @@ export default {
 		this.$store.dispatch('getMarketImg')
 		this.$store.dispatch('fetchTechPropertiesFit')
 		this.$store.dispatch('fetchTechPropertiesValues')
+		this.$store.dispatch('getBasket')
+		this.$store.dispatch('getOrders')
 		/* чтение конфига */
 		await GetConfig.getColumn('marketColumn')
 			.then((data) => {
@@ -2163,9 +2219,6 @@ export default {
 				}
 			})
 		})
-	},
-	components: {
-		appEditRate: EditRate
 	}
 }
 </script>

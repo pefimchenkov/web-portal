@@ -1,6 +1,6 @@
 <template>
 		<form>
-			<v-card class="elevation-2">
+			<v-card outlined>
 				<v-card-text>
 					<v-layout row wrap>
 						<v-flex xs4 class="px-2">

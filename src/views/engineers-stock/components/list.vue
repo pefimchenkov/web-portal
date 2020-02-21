@@ -392,7 +392,7 @@
 			</template>
 			</v-data-table>
 			<v-data-table
-				:headers="headers_good"
+				:headers="computedHeadersGood"
 				:items="archiveOperations"
 				:items-per-page="50"
 				item-key="id"
@@ -846,7 +846,8 @@ export default {
 		},
 		showName (username) {
 			if (username && this.jiraUsers.length > 0) {
-				return this.jiraUsers.find(user => user.user_name === username).display_name
+				if (this.jiraUsers.find(user => user.user_name === username)) return this.jiraUsers.find(user => user.user_name === username).display_name
+				else return false
 			} else {
 				return '---'
 			}

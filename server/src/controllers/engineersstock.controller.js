@@ -48,8 +48,8 @@ exports.fetchEngineersStockDetails = (req, res) => {
 	})
 }
 exports.setConditionStock = (req, res) => {
-	const { jiraID, zipID, type, user, comment, date } = req.body
-	EngineersStock.setConditionStock(parseInt(jiraID), parseInt(zipID), parseInt(type), JSON.stringify(user), JSON.stringify(comment), JSON.stringify(date), (err, data) => {
+	const { jiraID, zipID, marketID, type, user, comment, date } = req.body
+	EngineersStock.setConditionStock(parseInt(jiraID), parseInt(zipID), parseInt(marketID), parseInt(type), JSON.stringify(user), JSON.stringify(comment), JSON.stringify(date), (err, data) => {
 		if (err) {
 			res.status(500).send({
 				message:

@@ -137,8 +137,8 @@ EngineersStock.getEngineersStockDetails = (ids, zipID, result) => {
 		result(null, res)
 	})
 }
-EngineersStock.setConditionStock = (jiraID, zipID, type, user, comment, date, result) => {
-	db.query(`INSERT INTO tsddb.Sklad_Engineer (jira_id, zip_id, type, executor, comment, date) VALUES (${jiraID}, ${zipID}, ${type}, ${user}, ${comment}, ${date})`,
+EngineersStock.setConditionStock = (jiraID, zipID, marketID, type, user, comment, date, result) => {
+	db.query(`INSERT INTO tsddb.Sklad_Engineer (jira_id, zip_id, market_id, sklad, type, executor, comment, date) VALUES (${jiraID}, ${zipID}, ${marketID}, ${1}, ${type}, ${user}, ${comment}, ${date})`,
 		(err, res) => {
 			if (err) {
 				console.log('Error: ', err)

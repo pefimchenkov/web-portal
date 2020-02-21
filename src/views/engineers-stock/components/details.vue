@@ -89,7 +89,7 @@
 			</template>
 			<template v-slot:item.action="{ item }">
 				<template v-if="item.email_address">
-					<v-btn :disabled="(email !== user && user !== item.email_lead)" small icon @click.prevent="open(item)">
+					<v-btn :disabled="(email !== user && user !== item.email_lead && user !== 'epf@tsd-group.ru')" small icon @click.prevent="open(item)">
 							<v-icon small color="grey">mdi-pencil</v-icon>
 					</v-btn>
 					<v-btn small icon @click.prevent="send(item)">
@@ -248,7 +248,7 @@
 					if (this.prop === 'Новый') type = 2
 					if (this.prop === 'Можно восстановить') type = 1
 					if (this.prop === 'Отсутствующий') type = 0
-					this.$store.dispatch('setConditionStock', { jiraID: this.editedItem.ID, zipID: this.zipID, type: type, user: this.user, comment: this.comment, date: now })
+					this.$store.dispatch('setConditionStock', { jiraID: this.editedItem.ID, zipID: this.zipID, marketID: this.editedItem.MarketId, type: type, user: this.user, comment: this.comment, date: now })
 						.then(() => {
 							this.$store.commit('setData', 'Зип успешно перемещён.')
 							this.dialog = false
