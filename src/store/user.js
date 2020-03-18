@@ -1,6 +1,8 @@
 // just import firebase
 import fb from 'firebase/app'
 
+import { getBonusSale, getBonusSaleSum, getBonusProfit, getBonusProfitSum } from '@/api/user'
+
 // import package
 import 'firebase/auth'
 import 'firebase/firestore'
@@ -22,6 +24,10 @@ export default {
 		currentUser: null,
 		id: null,
 		userRole: '',
+		BonusSale: [],
+		BonusProfit: [],
+		BonusSaleSum: {},
+		BonusProfitSum: {},
 		info: {
 			firstname: '',
 			lastname: '',
@@ -52,7 +58,19 @@ export default {
 			if (state.info.hasOwnProperty(key)) {
 				state.info[key] = value
 			}
-		}
+		},
+		GET_BONUS_SALE(state, payload) {
+			state.BonusSale = payload
+		},
+		GET_BONUS_SALE_SUM(state, payload) {
+			state.BonusSaleSum = payload
+		},
+		GET_BONUS_PROFIT(state, payload) {
+			state.BonusProfit = payload
+		},
+		GET_BONUS_PROFIT_SUM(state, payload) {
+			state.BonusProfitSum = payload
+		},
 	},
 	actions: {
 		async registerUser({ commit }, { email, password }) {
@@ -160,6 +178,69 @@ export default {
 					commit('setError', error.messsage)
 					throw error
 				}
+			})
+		},
+		getBonusSale({ getters, commit }, email) {
+			console.log(email)
+			return new Promise((resolve, reject) => {
+				getBonusSale().
+					then(response => {
+						response.forEach(item => {
+							item.doc_date = new Date(item.doc_date).toLocaleDateString('ru')
+							item.HeadManager && item.HeadManager === email ? item.hmp = item.hmp : item.hmp = 0
+							item.Manager && item.Manager === email ? item.mp = item.mp : item.mp = 0
+							item.LocalManager && item.LocalManager === email ? item.lmp = item.lmp : item.lmp = 0
+						})
+						commit('GET_BONUS_SALE', response)
+						resolve()
+					}).catch(error => {
+						reject(error)
+					})
+			})
+		},
+		getBonusSaleSum({ commit, state }, payload) {
+			state.BonusSaleSum = {}
+			commit('setLoading', true)
+			return new Promise((resolve, reject) => {
+				getBonusSaleSum(payload).
+					then(response => {
+						commit('GET_BONUS_SALE_SUM', response)
+						commit('setLoading', false)
+						resolve()
+					}).catch(error => {
+						reject(error)
+					})
+			})
+		},
+		getBonusProfit({ getters, commit }, email) {
+			return new Promise((resolve, reject) => {
+				getBonusProfit().
+					then(response => {
+						response.forEach(item => {
+							item.doc_date = new Date(item.doc_date).toLocaleDateString('ru')
+							item.HeadManager && item.HeadManager === email ? item.hmp = item.hmp : item.hmp = 0
+							item.Manager && item.Manager === email ? item.mp = item.mp : item.mp = 0
+							item.LocalManager && item.LocalManager === email ? item.lmp = item.lmp : item.lmp = 0
+						})
+						commit('GET_BONUS_PROFIT', response)
+						resolve()
+					}).catch(error => {
+						reject(error)
+					})
+			})
+		},
+		getBonusProfitSum({ commit, state }, payload) {
+			state.BonusProfitSum = {}
+			commit('setLoading', true)
+			return new Promise((resolve, reject) => {
+				getBonusProfitSum(payload).
+					then(response => {
+						commit('GET_BONUS_PROFIT_SUM', response)
+						commit('setLoading', false)
+						resolve()
+					}).catch(error => {
+						reject(error)
+					})
 			})
 		},
 		autoLoginUser({ commit }, payload) {

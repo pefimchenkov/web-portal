@@ -236,7 +236,7 @@
 						</v-menu>
 					</v-flex>
 					<v-spacer></v-spacer>
-					<v-flex xs1 v-if="Basket || CurrentOrder.length > 0">
+					<v-flex xs1 v-if="Basket.length > 0">
 						<Basket></Basket>
 					</v-flex>
 					<v-spacer></v-spacer>
@@ -772,6 +772,7 @@
 
 <script>
 import Api from '@/services/Api'
+import { mapState } from 'vuex'
 import { formatDate } from '@/services/helpers'
 import { eventBus } from '@/main.js'
 import EditRate from './components/EditRate'
@@ -1192,6 +1193,10 @@ export default {
 	},
 
 	computed: {
+		...mapState({
+			Orders: state => state.market.Orders,
+			Basket: state => state.market.Basket
+		}),
 		TechPropertiesFit () {
 			return this.$store.getters.techPropertiesFit
 		},
@@ -1296,16 +1301,10 @@ export default {
 			}
 		},
 		Edit () {
-			return new AclRule('user').and('engineer').or('admin').generate()
+			return new AclRule('manager').or('engineer').or('admin').generate()
 		},
 		marketSupp () { return _.uniq(this.multiSelects.marketSupp) },
-		marketCond () { return _.uniq(this.multiSelects.marketCond) },
-		Basket () {
-			return localStorage.getItem('marketBasket')
-		},
-		Orders () {
-			return localStorage.getItem('marketOrders')
-		}
+		marketCond () { return _.uniq(this.multiSelects.marketCond) }
 	},
 	watch: {
 		dialog (val) {

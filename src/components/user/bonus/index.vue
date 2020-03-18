@@ -1,7 +1,5 @@
 <template>
-    <div>
-        <bonusCard></bonusCard>
-    </div>
+    <bonusCard></bonusCard>
 </template>
 
 <script>
