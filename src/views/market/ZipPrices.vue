@@ -1002,7 +1002,7 @@ export default {
 					selected: localStorage.marketART_AP,
 					visible: true,
 					divider: true },
-				{ text: 'Склад Пекин',
+				{ text: 'Склад ИМ',
 					value: 'marketBEIJING',
 					selected: localStorage.marketART_AP,
 					visible: true,

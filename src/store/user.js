@@ -1,7 +1,7 @@
 // just import firebase
 import fb from 'firebase/app'
 
-import { getBonusSale, getBonusSaleSum, getBonusProfit, getBonusProfitSum } from '@/api/user'
+import { getBonusSale, getBonusSaleSum, getBonusProfit, getBonusProfitSum, getUsersWithBonus } from '@/api/user'
 
 // import package
 import 'firebase/auth'
@@ -28,6 +28,7 @@ export default {
 		BonusProfit: [],
 		BonusSaleSum: {},
 		BonusProfitSum: {},
+		UsersWithBonus: [],
 		info: {
 			firstname: '',
 			lastname: '',
@@ -71,6 +72,9 @@ export default {
 		GET_BONUS_PROFIT_SUM(state, payload) {
 			state.BonusProfitSum = payload
 		},
+		GET_USERS_WITH_BONUS(state, payload) {
+			state.UsersWithBonus = payload
+		}
 	},
 	actions: {
 		async registerUser({ commit }, { email, password }) {
@@ -190,6 +194,7 @@ export default {
 							item.HeadManager && item.HeadManager === email ? item.hmp = item.hmp : item.hmp = 0
 							item.Manager && item.Manager === email ? item.mp = item.mp : item.mp = 0
 							item.LocalManager && item.LocalManager === email ? item.lmp = item.lmp : item.lmp = 0
+							item.LocalManager && item.LocalManager === email ? item.lmpX = item.lmpX : item.lmpX = 0
 						})
 						commit('GET_BONUS_SALE', response)
 						resolve()
@@ -221,6 +226,7 @@ export default {
 							item.HeadManager && item.HeadManager === email ? item.hmp = item.hmp : item.hmp = 0
 							item.Manager && item.Manager === email ? item.mp = item.mp : item.mp = 0
 							item.LocalManager && item.LocalManager === email ? item.lmp = item.lmp : item.lmp = 0
+							item.lmpX === -1 ? item.lmpX = item.hmp + item.mp + item.lmp : item.lmpX
 						})
 						commit('GET_BONUS_PROFIT', response)
 						resolve()
@@ -237,6 +243,17 @@ export default {
 					then(response => {
 						commit('GET_BONUS_PROFIT_SUM', response)
 						commit('setLoading', false)
+						resolve()
+					}).catch(error => {
+						reject(error)
+					})
+			})
+		},
+		getUsersWithBonus({ commit }) {
+			return new Promise((resolve, reject) => {
+				getUsersWithBonus().
+					then(response => {
+						commit('GET_USERS_WITH_BONUS', response)
 						resolve()
 					}).catch(error => {
 						reject(error)

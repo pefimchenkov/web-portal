@@ -5,7 +5,13 @@
 		</v-dialog>
 		<v-row justify="center">
 			<v-col cols="4">
+				<v-progress-linear  
+					v-if="Jira_Users.length === 0"
+					color="green"
+					indeterminate
+				></v-progress-linear >
 				<v-autocomplete
+					v-else
 					v-model="JiraUser"
 					@change="reloadAllBonus(JiraUser.email)"
 					:items="Jira_Users"
@@ -17,27 +23,20 @@
 		</v-row>
 		<v-row>
 			<v-col v-for="item in items" :key="item.name" class="mx-4">
-				<v-card max-width="480" outlined>
+				<v-boilerplate
+					v-if="!item.pointsX && !item.points && loading"
+					class="mb-6"
+					type="article, actions"
+				></v-boilerplate>
+				<v-card v-else max-width="480" outlined>
 					<v-list-item three-line>
 						<v-list-item-content>
 							<div class="overline mb-4">{{ item.name }}</div>
 							<v-list-item-title class="headline my-3">{{ item.titleX }} - 
-								<v-progress-circular 
-									v-if="!item.pointsX && loading"
-									:width="2"
-									color="green"
-									indeterminate
-								></v-progress-circular>
-								<span v-else>{{ item.pointsX }}</span>
+								<span>{{ item.pointsX }}</span>
 							</v-list-item-title>
 							<v-list-item-subtitle v-if="item.name === 'Продажи' || item.name === 'Доходность'" class="title my-3">{{ item.title }} - 
-								<v-progress-circular 
-									v-if="!item.points && loading"
-									:width="2"
-									color="green"
-									indeterminate
-								></v-progress-circular>
-								<span v-else>{{ item.points }}</span>
+								<span>{{ item.points }}</span>
 							</v-list-item-subtitle>
 							<v-list-item-subtitle class="my-3">Нажмите "Подробнее" чтобы увидеть детализацию</v-list-item-subtitle>
 						</v-list-item-content>
@@ -64,15 +63,32 @@ import { mapState } from 'vuex'
 
 export default {
 	components: {
-		bonusDialog
+		bonusDialog,
+		VBoilerplate: {
+			functional: true,
+			render (h, { data, props, children }) {
+				return h('v-skeleton-loader', {
+					...data,
+					props: {
+						boilerplate: false,
+						elevation: 2,
+						...props
+					}
+				}, children)
+			}
+		}
 	},
 	computed: {
 		loading () {
 			return this.$store.getters.loading
 		},
+		/* Users () {
+			return this.Jira_Users.filter(user => this.Bonus_Users.find(obj => user.user_name === obj.Manager))
+		}, */
 		...mapState({
 			BonusSaleSum: state => state.user.BonusSaleSum,
 			BonusProfitSum: state => state.user.BonusProfitSum,
+			// Bonus_Users: state => state.user.UsersWithBonus,
 			Jira_Users: state => state.jira_users.JIRA_USERS
 		}),
 		pointsXSale () {
@@ -118,12 +134,15 @@ export default {
 			this.$store.dispatch('getBonusProfit', email)
 		}
 	},
+	async beforeCreate () {
+		// await this.$store.dispatch('getUsersWithBonus')
+		await this.$store.dispatch('fetchJiraUsers')
+		this.$store.dispatch('getBonusSale', this.email)
+		this.$store.dispatch('getBonusProfit', this.email)
+	},
 	async created () {
 		await this.$store.dispatch('getBonusSaleSum', { email: this.email })
 		await this.$store.dispatch('getBonusProfitSum', { email: this.email })
-		this.$store.dispatch('getBonusSale', this.email)
-		this.$store.dispatch('getBonusProfit', this.email)
-		this.$store.dispatch('fetchJiraUsers')
 	}
 }
 </script>

@@ -42,3 +42,13 @@ exports.getBonusProfitSum = (req, res) => {
 		} else res.send(data = { code: 20000, data: data })
 	})
 }
+exports.getUsersWithBonus = (req, res) => {
+	User.getUsersWithBonus((err, data) => {
+		if (err) {
+			res.status(500).send({
+				message:
+					err.message || `Ошибка при получении пользователей с бонусами.`
+			})
+		} else res.send(data = { code: 20000, data: data })
+	})
+}

@@ -28,3 +28,10 @@ export function getBonusProfitSum (data) {
 		data
 	})
 }
+export function getUsersWithBonus (params) {
+	return request({
+		url: '/user/users_with_bonus',
+		method: 'get',
+		params
+	})
+}

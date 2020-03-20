@@ -26,7 +26,14 @@
 
 				<v-tab-item :value="'tab-data'" class="ml-10">
 					<v-card class="mx-auto" outlined>
-						<v-row class="ma-auto">
+						<v-skeleton-loader
+							v-if="!Position"
+							ref="skeleton"
+							type="list-item-avatar-three-line"
+							class="mx-auto"
+							tile
+						></v-skeleton-loader>
+						<v-row v-else class="ma-auto">
 							<v-col class="text-center" xs="12" sm="12" md="4" lg="4" xl="4">
 								<v-avatar size='300' tile>
 									<v-img v-if='Photo' class='img' :src='Photo' contain></v-img>
