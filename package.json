@@ -22,7 +22,7 @@
     "firebase": "^5.5.3",
     "intersection-observer": "^0.7.0",
     "js-cookie": "^2.2.1",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "moment": "^2.22.2",
     "npm": "^6.13.1",
     "sass": "^1.23.7",
